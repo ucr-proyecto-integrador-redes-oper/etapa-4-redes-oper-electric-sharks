@@ -23,7 +23,7 @@ typedef struct Token : OrangePacket
 	///Field to represent a graph node.
 	unsigned short int node;
 	///IP address of the blue node to be assigned.
-	unsigned assignedIp;
+	unsigned int assignedIp;
 	///Port number of the blue node to be assigned.
 	unsigned short int assignedPort;
 }Token;
