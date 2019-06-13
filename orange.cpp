@@ -21,16 +21,14 @@ Orange::~Orange(){
 }
 
 void Orange::requestIP(){
-    string leftIPStr;
-    string rightIPStr;
-
     cout <<"Una vez que todos los nodos naranjas estén corriendo, ingrese el número IP del vecino izquierdo"<<endl;
-    cin >> leftIPStr;
+    cin >> this->leftIP;
 
     cout <<"Ingrese el número IP del vecino derecho"<<endl;
-    cin >> rightIPStr;
+    cin >> this->rightIP;
 }
 
+///Funcion que verifica la cantidad de datos por consola y los convierte de strings a los datos de la clase Orange
 void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &orangeOutPort, int argc, char ** argv){
     switch(argc){
 		case 1:
@@ -49,17 +47,13 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
     }
 }
 
+///Funcion para el thread que recibe paquetes del socket y los pone en la cola compartida para el siguiente thread
 void *Orange::reciver(){
-    Socket socketIn(Socket::Protocol::TCP,false);
-    Socket * conn_sock;
-    
-    socketIn.Bind((long)orangeInPort);
-    socketIn.Listen();
-    conn_sock = socketIn.Accept();
-    printf("%d",id);
-
+    /*Crea el socket */
     while(1){
-        printf("Nani?");
+        /*Lee el socket */
+        Packet packet();    //Paquete que se recibe por el socket. Vacio mientras se hacen pruebas
+
     }
 }
 
@@ -67,14 +61,50 @@ void *Orange::reciverHelper(void *context){
     return ((Orange *)context)->reciver();
 }
 
+///Funcion para el thread que toma un paquete de la cola compartida, lo procesa y pone mensajes en la cola compartida para el siguiente thread
 void *Orange::processer(){
+    while(true){
+        /*Lee la cola compartida, saca el paquete del frente y lo procesa */
+        pthread_mutex_lock(&semIn);
+        if(!sharedInBuffer.empty()){
+            Packet packet = sharedInBuffer.front();
+            sharedInBuffer.pop();
+
+            switch(packet.id){
+                /*Hace las diferentes acciones con los paquetes */
+            }
+
+        }
+        pthread_mutex_unlock(&semIn);
+        
+        Packet packetOut; //Paquete que se crea dentro del switch dependiendo de lo que pida el paquete entrante. Vacio mientras se hacen pruebas
+        pthread_mutex_lock(&semOut);
+        sharedOutBuffer.push(packetOut);
+        pthread_mutex_unlock(&semOut);
+
+    }
 }
 
 void *Orange::processerHelper(void *context){
     return ((Orange *)context)->sender();
 }
 
+///Funcion que toma paquetes de la cola compartida y los envia por el socket
 void *Orange::sender(){
+    
+    while(true){
+        if(!privateOutBuffer.empty()){
+            /*Lo envia con el socket */
+        }
+        else{                                       //Si la cola privada está vacía, busca en la cola compartida
+            pthread_mutex_lock(&semOut);
+            if(!sharedOutBuffer.empty()){
+                privateOutBuffer.push(sharedOutBuffer.front());
+                sharedOutBuffer.pop();
+            }
+            pthread_mutex_unlock(&semOut);
+        }
+    }
 }
 
 void *Orange::senderHelper(void *context){

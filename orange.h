@@ -4,19 +4,19 @@
 
 #include "packet.h"
 #include <pthread.h>
-#include <deque>
+#include <queue>
 
 using namespace std;
 
 class Orange{
     private:
-        unsigned short int orangeInPort;
-        unsigned short int orangeOutPort;
         unsigned short int bluePort;
-        deque<Packet> privateInBuffer;
-        deque<Packet> privateOutBuffer;
-        deque<Packet> sharedInBuffer;
-        deque<Packet> sharedOutBuffer;
+
+        queue<Packet> privateInBuffer;
+        queue<Packet> privateOutBuffer;
+        queue<Packet> sharedInBuffer;
+        queue<Packet> sharedOutBuffer;
+
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
 
@@ -25,8 +25,10 @@ class Orange{
         void * sender();
 
     public:
-        unsigned int leftIP;
-        unsigned int rightIP;
+        unsigned short int orangeInPort;
+        unsigned short int orangeOutPort;
+        char leftIP[15];
+        char rightIP[15];
         int id;
 
         Orange();
