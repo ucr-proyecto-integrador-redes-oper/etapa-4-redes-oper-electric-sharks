@@ -1,7 +1,6 @@
 #include "socket.h"
 #include "error_handler.h"
 
-
 #include <iostream>
 
 using namespace std;
