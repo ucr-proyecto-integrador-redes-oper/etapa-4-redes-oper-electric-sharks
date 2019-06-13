@@ -6,26 +6,33 @@
 #include <pthread.h>
 
 class Orange{
-    unsigned int leftIP;
-    unsigned int rightIP;
-    int id;
-    unsigned short int orangeInPort;
-    unsigned short int orangeOutPort;
-    unsigned short int bluePort;
-    Packet* privateInBuffer;
-    Packet* privateOutBuffer;
-    Packet* sharedInBuffer;
-    Packet* sharedOutBuffer;
-    pthread_mutex_t semIn;
-    pthread_mutex_t semOut;
+    private:
+        unsigned short int orangeInPort;
+        unsigned short int orangeOutPort;
+        unsigned short int bluePort;
+        Packet* privateInBuffer;
+        Packet* privateOutBuffer;
+        Packet* sharedInBuffer;
+        Packet* sharedOutBuffer;
+        pthread_mutex_t semIn;
+        pthread_mutex_t semOut;
 
-    Orange();
-    ~Orange();
-    Orange(unsigned short int, unsigned short int);
-    void requestIP();
-    void reciver();
-    void sender();
-    void reciver();
-    void init();
+        void * reciver();
+        void * processer();
+        void * sender();
+
+    public:
+        unsigned int leftIP;
+        unsigned int rightIP;
+        int id;
+
+        Orange();
+        ~Orange();
+        Orange(int, unsigned short int, unsigned short int);
+        void requestIP();
+        static void * reciverHelper(void *context);
+        static void * processerHelper(void *context);
+        static void * senderHelper(void *context);
+        void init();
 };
 
