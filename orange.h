@@ -22,7 +22,7 @@ class Orange{
     Orange();
     ~Orange();
     Orange(unsigned short int, unsigned short int);
-    void requestIp();
+    void requestIP();
     void reciver();
     void sender();
     void reciver();
