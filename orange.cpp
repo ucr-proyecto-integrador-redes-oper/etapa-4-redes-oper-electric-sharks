@@ -1,11 +1,15 @@
 #include "orange.h"
+#include "socket.h"
+
+
 #include <iostream>
 #include <string>
 #include <pthread.h>
 
 using namespace std;
 
-Orange::Orange(){}
+Orange::Orange(){
+}
 
 Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort){
     this->id = id;
@@ -33,7 +37,7 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
         case 2:
 		case 3:
 			perror("Número de argumentos menor al requerido\n");
-			printf("Formato: %s <id> <puerto> <puerto>\n", argv[0]);
+			printf("Formato: %s <id> <puerto de entrada> <puerto de salida>\n", argv[0]);
             exit(EXIT_FAILURE);
         default:
 
@@ -46,7 +50,17 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
 }
 
 void *Orange::reciver(){
+    Socket socketIn(Socket::Protocol::TCP,false);
+    Socket * conn_sock;
+    
+    socketIn.Bind((long)orangeInPort);
+    socketIn.Listen();
+    conn_sock = socketIn.Accept();
     printf("%d",id);
+
+    while(1){
+        printf("Nani?");
+    }
 }
 
 void *Orange::reciverHelper(void *context){
@@ -54,7 +68,6 @@ void *Orange::reciverHelper(void *context){
 }
 
 void *Orange::processer(){
-    printf("%d",id);
 }
 
 void *Orange::processerHelper(void *context){
@@ -62,7 +75,6 @@ void *Orange::processerHelper(void *context){
 }
 
 void *Orange::sender(){
-    printf("%d",id);
 }
 
 void *Orange::senderHelper(void *context){

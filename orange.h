@@ -4,16 +4,19 @@
 
 #include "packet.h"
 #include <pthread.h>
+#include <deque>
+
+using namespace std;
 
 class Orange{
     private:
         unsigned short int orangeInPort;
         unsigned short int orangeOutPort;
         unsigned short int bluePort;
-        Packet* privateInBuffer;
-        Packet* privateOutBuffer;
-        Packet* sharedInBuffer;
-        Packet* sharedOutBuffer;
+        deque<Packet> privateInBuffer;
+        deque<Packet> privateOutBuffer;
+        deque<Packet> sharedInBuffer;
+        deque<Packet> sharedOutBuffer;
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
 
