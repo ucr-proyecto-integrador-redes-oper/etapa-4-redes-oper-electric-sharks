@@ -6,9 +6,10 @@
 
 using namespace std;
 
-Socket::Socket(Protocol p, bool ipv6){
+Socket::Socket(Protocol p, unsigned long udp_port, bool ipv6){
 	int domain = (ipv6 ? AF_INET6 : AF_INET);
-	int type = (p == Protocol::TCP ? SOCK_STREAM : SOCK_DGRAM);
+	int type = (p == TCP ? SOCK_STREAM : SOCK_DGRAM);
+	this->udp_port = (p == UDP ? udp_port : -1);
 	sfd = socket(domain, type, 0);
 	if(sfd == -1){
 		error_exit(errno, "Error creating socket\n");
@@ -112,16 +113,15 @@ int Socket::Sendto(const char * message, int len, const char * destination, int 
 }
 
 int Socket::Recvfrom(char * message, int len, struct sockaddr_in* client_addr){
-	struct sockaddr_in sender_addr;
 	struct sockaddr_in receiver_addr;
 	if(!client_addr)
 		client_addr = &receiver_addr;
 	
 	receiver_addr.sin_family = AF_INET;
 	receiver_addr.sin_addr.s_addr = INADDR_ANY;
-	receiver_addr.sin_port = htons(DEF_PORT);
+	receiver_addr.sin_port = htons(udp_port);
 	
-	bind(sfd, (const struct sockaddr *)&receiver_addr,  sizeof(receiver_addr));
+	bind(sfd, (const struct sockaddr *) &receiver_addr,  sizeof(receiver_addr));
 	
 	int received;
 	unsigned int struct_size = sizeof(struct sockaddr_in);
