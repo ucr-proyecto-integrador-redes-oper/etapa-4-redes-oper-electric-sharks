@@ -13,11 +13,13 @@
 /// Struct with enumerations that identify the packets by their ID field.
 typedef struct ID
 {
-	//ID space for orange packets: [10, 19]
+	//ID space for orange packets: [0, 9]
 	enum ORANGE
 	{
-		INITIAL_TOKEN = 10,
-		TOKEN
+		TOKEN_INITIAL,
+		TOKEN_FULL_AND_REQUEST,
+		TOKEN_FULL_AND_COMPLETE,
+		TOKEN_EMPTY
 	};
 	
 	//ID space for blue packets: [20, 39]
