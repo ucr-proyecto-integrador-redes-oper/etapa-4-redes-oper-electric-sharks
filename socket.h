@@ -28,6 +28,8 @@ class Socket{
 		int Bind(long);
 		Socket * Accept();
 		int Sendto(const char *, int, const char *, int);
+		int Sendto(const char *, int, struct in_addr, int);
+		int Sendto(const char *, int, struct sockaddr_in *);
 		int Recvfrom(char *, int, struct sockaddr_in* = nullptr);
 		int Shutdown(int);
 		int Close();

@@ -112,7 +112,24 @@ int Socket::Sendto(const char * message, int len, const char * destination, int 
 	return sent;
 }
 
-int Socket::Recvfrom(char * message, int len, struct sockaddr_in* client_addr){
+int Socket::Sendto(const char * message, int len, struct in_addr addr, int port){
+	struct sockaddr_in dest_addr;
+	dest_addr.sin_addr = addr;
+	dest_addr.sin_port = htons(port);
+	dest_addr.sin_family = AF_INET;
+	
+	int sent;
+	sent = sendto(sfd, (const void *) message, len, 0, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr_in));
+	return sent;
+}
+
+int Socket::Sendto(const char * message, int len, struct sockaddr_in * dest_addr){
+	int sent;
+	sent = sendto(sfd, (const void *) message, len, 0, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in));
+	return sent;
+}
+
+int Socket::Recvfrom(char * message, int len, struct sockaddr_in * client_addr){
 	struct sockaddr_in receiver_addr;
 	if(!client_addr)
 		client_addr = &receiver_addr;
