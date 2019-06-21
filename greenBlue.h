@@ -3,7 +3,7 @@
 
 #include "packet.h"
 
-struct GreenBlue
+struct GreenBlue : Packet
 {
 	char name[NAME_SIZE];
 };

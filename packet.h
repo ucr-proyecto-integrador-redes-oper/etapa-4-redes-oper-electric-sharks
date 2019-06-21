@@ -53,7 +53,7 @@ typedef struct ID
 } ID;
 
 ///Function that takes an ipv4 address in binary notation and returns it in dots notation.
-char* decode_ip(unsigned int ip, char* str)
+/*char* decode_ip(unsigned int ip, char* str)
 {
     unsigned char bytes[4];
     bytes[0] = ip & 0xFF;
@@ -62,14 +62,14 @@ char* decode_ip(unsigned int ip, char* str)
     bytes[3] = (ip >> 24) & 0xFF;   
     sprintf(str, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);        
     return str;
-}
+}*/
 
-unsigned int encode_ip(char* ip)
+/*unsigned int encode_ip(char* ip)
 {
 	struct in_addr ip_addr;
 	inet_aton(ip, &ip_addr);
 	return (int) ip_addr.s_addr;
-}
+}*/
 
 ///Base struct Packet. All packets share the id field.
 struct Packet

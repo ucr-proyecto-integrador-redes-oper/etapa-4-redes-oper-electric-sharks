@@ -4,6 +4,7 @@
 #include "packet.h"
 #include "orangePacket.h"
 #include "socket.h"
+#include "encoder.h"
 
 #include <pthread.h>
 #include <queue>

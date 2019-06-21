@@ -4,6 +4,7 @@
 #include <string>
 #include <pthread.h>
 #include <ifaddrs.h>
+#include <netdb.h>
 
 using namespace std;
 
@@ -55,19 +56,32 @@ void *Orange::reciver(){
     /*Crea el socket */
     char* buffer = new char[BUF_SIZE];
     memset(buffer, 0, BUF_SIZE);
+    Packet* currentPacket;
+    Code coder;
+    int status = 0;
+    
     
     while(true){
         /*Lee el socket */
         this->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT);
-        InitialToken packet; //Paquete que se recibe por el socket.
-        packet.id = this->packetsID.ORANGE::INITIAL_TOKEN;
+        
+        currentPacket = coder.decode(buffer);
 		
-		this->privateInBuffer.push(packet);
-		pthread_mutex_lock(&semIn);
-		this->sharedInBuffer.push(packet);
+		this->privateInBuffer.push(*currentPacket);
+		
+		status = pthread_mutex_trylock(&semIn);
+		if(status == EBUSY)
+			continue;
+		while(!this->privateInBuffer.empty()){
+			this->sharedInBuffer.push(privateInBuffer.front());
+			this->privateInBuffer.pop();
+		}
 		pthread_mutex_unlock(&semIn);
+		
 		sem_post(&this->InBufferSem);
-		cout << "Read from socket: " << packet.ip << endl;
+		
+		free(currentPacket);
+		
 		memset(buffer, 0, BUF_SIZE);
     }
 }
@@ -137,39 +151,35 @@ void *Orange::senderHelper(void *context){
 
 void Orange::getHostIP()
 {
-	struct ifaddrs * ifAddrStruct=NULL;
-    struct ifaddrs * ifa=NULL;
-    void * tmpAddrPtr=NULL;
+	struct ifaddrs *ifaddr, *ifa;
+    int family, s;
+    char host[NI_MAXHOST];
 
-    getifaddrs(&ifAddrStruct);
-	int addressCount = 0;
-    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-        if (!ifa->ifa_addr) {
-            continue;
-        }
-        if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
-            // is a valid IP4 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            unsigned long address = ((struct in_addr*)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr)->s_addr;
-            char buffer[16];
-            
-            if(addressCount == 6)
-				decode_ip(address,  this->myIP);
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
-        } else if (ifa->ifa_addr->sa_family == AF_INET6) { // check it is IP6
-            // is a valid IP6 Address
-            tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
-            char addressBuffer[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
-        } 
-        ++addressCount;
+    if (getifaddrs(&ifaddr) == -1) 
+    {
+        perror("getifaddrs");
+        exit(EXIT_FAILURE);
     }
-    if(ifAddrStruct!=NULL) 
-		freeifaddrs(ifAddrStruct);
-		
+
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr == NULL)
+            continue;  
+
+        s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+
+        if((strcmp(ifa->ifa_name,"eno1")==0)&&(ifa->ifa_addr->sa_family==AF_INET))
+        {
+            if (s != 0)
+            {
+                printf("getnameinfo() failed: %s\n", gai_strerror(s));
+                exit(EXIT_FAILURE);
+            } 
+            memcpy(this->myIP, host, IP_LEN);
+        }
+    }
+
+    freeifaddrs(ifaddr);
     printf("Host IP: %s\n", this->myIP); 
 }
 
@@ -177,12 +187,12 @@ void Orange::beginContention()
 {
 	InitialToken p;
 	p.id = this->packetsID.ORANGE::INITIAL_TOKEN;
-	p.ip = encode_ip(this->myIP);
+	//p.ip = encode_ip(this->myIP);
 }
 
 
 int main(int argc, char* argv[]){
-    int id;
+    /*int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     get_args(id, orangeInPort, orangeOutPort, argc, argv);
@@ -193,15 +203,15 @@ int main(int argc, char* argv[]){
     pthread_t sender;
     
     orangeNode.requestIP();
-	Orange node;
+	*/Orange node;
 	node.getHostIP();
-
+/*
     int resReciver = pthread_create(&reciver, NULL, &Orange::reciverHelper, &orangeNode);
     int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
     int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
 	
-	/*Nunca hacen exit*/
+	/*Nunca hacen exit
 	pthread_join(reciver, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
-	pthread_join(sender, (void**) nullptr);
+	pthread_join(sender, (void**) nullptr);*/
 }
