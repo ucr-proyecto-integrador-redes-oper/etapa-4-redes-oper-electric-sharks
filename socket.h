@@ -32,7 +32,7 @@ class Socket{
 		int Bind(long);
 		Socket * Accept();
 		int Sendto(const char *, int, const char *, int = DEF_PORT);
-		int Recvfrom(char *, int, struct sockaddr_in* = nullptr);
+		int Recvfrom(char *, int, unsigned short = DEF_PORT, struct sockaddr_in* = nullptr);
 		int Shutdown(int);
 		int Close();
 };

@@ -2,8 +2,17 @@
 #define ORANGE_H
 
 #include "packet.h"
+#include "orangePacket.h"
+#include "socket.h"
+
 #include <pthread.h>
 #include <queue>
+#include <semaphore.h>
+
+#define IP_LEN 15
+#define BUF_SIZE 1024
+#define ORANGE_PORT 11000
+#define BLUE_PORT 12000
 
 using namespace std;
 
@@ -12,7 +21,6 @@ class Orange{
         unsigned short int bluePort;
         size_t numTotalOranges;
         
-        char* hostIpAddress;
         unsigned int* ipBuffer;
 
         queue<Packet> privateInBuffer;
@@ -22,17 +30,27 @@ class Orange{
 
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
+        
+        sem_t InBufferSem;
+        sem_t OutBufferSem;
+        
+        ID packetsID;
+        
+        Socket * orangeSocket;
+        Socket * blueSocket;
 
         void * reciver();
         void * processer();
         void * sender();
+        void beginContention();
         
 
     public:
         unsigned short int orangeInPort;
         unsigned short int orangeOutPort;
-        char leftIP[15];
-        char rightIP[15];
+        char leftIP[IP_LEN];
+        char rightIP[IP_LEN];
+        char myIP[IP_LEN];
         int id;
 
         Orange();

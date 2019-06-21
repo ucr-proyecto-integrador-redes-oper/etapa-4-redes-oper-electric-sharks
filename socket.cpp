@@ -110,7 +110,7 @@ int Socket::Sendto(const char * message, int len, const char * destination, int 
 	return sent;
 }
 
-int Socket::Recvfrom(char * message, int len, struct sockaddr_in* client_addr){
+int Socket::Recvfrom(char * message, int len, unsigned short port, struct sockaddr_in* client_addr){
 	struct sockaddr_in sender_addr;
 	struct sockaddr_in receiver_addr;
 	if(!client_addr)
@@ -118,7 +118,7 @@ int Socket::Recvfrom(char * message, int len, struct sockaddr_in* client_addr){
 	
 	receiver_addr.sin_family = AF_INET;
 	receiver_addr.sin_addr.s_addr = INADDR_ANY;
-	receiver_addr.sin_port = htons(DEF_PORT);
+	receiver_addr.sin_port = htons(port);
 	
 	bind(sfd, (const struct sockaddr *)&receiver_addr,  sizeof(receiver_addr));
 	

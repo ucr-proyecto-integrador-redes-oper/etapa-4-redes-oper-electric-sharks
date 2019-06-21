@@ -1,5 +1,4 @@
 #include "orange.h"
-#include "socket.h"
 
 #include <iostream>
 #include <string>
@@ -12,9 +11,12 @@ Orange::Orange(){
 }
 
 Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges)
-: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), ipBuffer(nullptr), hostIpAddress(nullptr)
+: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), ipBuffer(nullptr)
 {
-	
+	sem_init(&this->InBufferSem, 0, 0);
+	sem_init(&this->OutBufferSem, 0, 0);
+	this->orangeSocket = new Socket(Socket::Protocol::UDP);
+	this->blueSocket = new Socket(Socket::Protocol::UDP);
 }
 
 Orange::~Orange(){
@@ -39,7 +41,8 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
             exit(EXIT_FAILURE);
         default:
 
-            if((id = stoi(argv[1])) == 0 || (orangeInPort = (unsigned short) stoi(argv[2], NULL, 0)) == 0  || (orangeOutPort = (unsigned short) stoi(argv[3], NULL, 0)) == 0){ // Si el argumento no es un número válido el programa se cae aquí
+            if((id = stoi(argv[1])) == 0 || (orangeInPort = (unsigned short) stoi(argv[2], NULL, 0)) == 0  || \
+            (orangeOutPort = (unsigned short) stoi(argv[3], NULL, 0)) == 0){ // Si el argumento no es un número válido el programa se cae aquí
 				perror("Invalid argument!\n");
 				printf("Format: %s <port>\n", argv[0]);
 				exit(EXIT_FAILURE);
@@ -50,10 +53,22 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
 ///Funcion para el thread que recibe paquetes del socket y los pone en la cola compartida para el siguiente thread
 void *Orange::reciver(){
     /*Crea el socket */
-    while(1){
+    char* buffer = new char[BUF_SIZE];
+    memset(buffer, 0, BUF_SIZE);
+    
+    while(true){
         /*Lee el socket */
-        Packet packet();    //Paquete que se recibe por el socket. Vacio mientras se hacen pruebas
-
+        this->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT);
+        InitialToken packet; //Paquete que se recibe por el socket.
+        packet.id = this->packetsID.ORANGE::INITIAL_TOKEN;
+		
+		this->privateInBuffer.push(packet);
+		pthread_mutex_lock(&semIn);
+		this->sharedInBuffer.push(packet);
+		pthread_mutex_unlock(&semIn);
+		sem_post(&this->InBufferSem);
+		cout << "Read from socket: " << packet.ip << endl;
+		memset(buffer, 0, BUF_SIZE);
     }
 }
 
@@ -65,6 +80,7 @@ void *Orange::reciverHelper(void *context){
 void *Orange::processer(){
     while(true){
         /*Lee la cola compartida, saca el paquete del frente y lo procesa */
+        sem_wait(&InBufferSem);	//Espera a que haya algo en la cola para procesar
         pthread_mutex_lock(&semIn);
         if(!sharedInBuffer.empty()){
             Packet packet = sharedInBuffer.front();
@@ -81,6 +97,7 @@ void *Orange::processer(){
         pthread_mutex_lock(&semOut);
         sharedOutBuffer.push(packetOut);
         pthread_mutex_unlock(&semOut);
+        sem_post(&this->OutBufferSem);	//le avisa al sender que hay algo para enviar
 
     }
 }
@@ -91,12 +108,19 @@ void *Orange::processerHelper(void *context){
 
 ///Funcion que toma paquetes de la cola compartida y los envia por el socket
 void *Orange::sender(){
-    
+    char* rowPacket = new char[BUF_SIZE];
+    memset(rowPacket, 0, BUF_SIZE);
     while(true){
         if(!privateOutBuffer.empty()){
+			Packet toSend = privateOutBuffer.front();
+			privateOutBuffer.pop();
+			memcpy(rowPacket, (char*)&toSend, sizeof(toSend));
+			this->orangeSocket->Sendto(rowPacket, sizeof(toSend), this->rightIP, ORANGE_PORT);
+			memset(rowPacket, 0, BUF_SIZE);
             /*Lo envia con el socket */
         }
         else{                                       //Si la cola privada está vacía, busca en la cola compartida
+			sem_wait(&this->OutBufferSem);
             pthread_mutex_lock(&semOut);
             if(!sharedOutBuffer.empty()){
                 privateOutBuffer.push(sharedOutBuffer.front());
@@ -128,10 +152,9 @@ void Orange::getHostIP()
             tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             unsigned long address = ((struct in_addr*)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr)->s_addr;
             char buffer[16];
-            //printf("This address is: %s\n", make_ip(realAddress,  buffercito));
             
             if(addressCount == 6)
-				this->hostIpAddress = strdup(make_ip(address,  buffer));
+				decode_ip(address,  this->myIP);
             char addressBuffer[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
             //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
@@ -147,26 +170,38 @@ void Orange::getHostIP()
     if(ifAddrStruct!=NULL) 
 		freeifaddrs(ifAddrStruct);
 		
-    printf("Host IP: %s\n", this->hostIpAddress); 
+    printf("Host IP: %s\n", this->myIP); 
+}
+
+void Orange::beginContention()
+{
+	InitialToken p;
+	p.id = this->packetsID.ORANGE::INITIAL_TOKEN;
+	p.ip = encode_ip(this->myIP);
 }
 
 
 int main(int argc, char* argv[]){
-    /*int id;
+    int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     get_args(id, orangeInPort, orangeOutPort, argc, argv);
-    Orange orangeNode(id, orangeInPort, orangeOutPort);
+    Orange orangeNode(id, orangeInPort, orangeOutPort, 2);
     
     pthread_t reciver;
     pthread_t processer;
     pthread_t sender;
+    
+    orangeNode.requestIP();
+	Orange node;
+	node.getHostIP();
 
     int resReciver = pthread_create(&reciver, NULL, &Orange::reciverHelper, &orangeNode);
     int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
     int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
-    
-    orangeNode.requestIP();*/
-	Orange node;
-	node.getHostIP();
+	
+	/*Nunca hacen exit*/
+	pthread_join(reciver, (void**) nullptr);
+	pthread_join(processer, (void**) nullptr);
+	pthread_join(sender, (void**) nullptr);
 }
