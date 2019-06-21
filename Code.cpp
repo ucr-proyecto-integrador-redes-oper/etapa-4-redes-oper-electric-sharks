@@ -190,14 +190,14 @@ Packet* Code::decode(char *c){
 	memcpy(&id,&c,sizeof(pac->id));
 	switch(id){
 		case static_cast<int>(ID::INITIAL_TOKEN):
-		   pac=(OrangePacket*) calloc  (3,sizeof(OrangePacket));//********************************************************
+		   orangeI=(InitialToken*) calloc  (3,sizeof(InitialToken*));//********************************************************
 		   memcpy(&orangeI->id,&c,sizeof(orangeI->id));
 		   memcpy(&orangeI->ip,&c+sizeof(orangeI->id),sizeof(orangeI->ip));
 		   memcpy(&orangeI->boolean,&c+sizeof(orangeI->id)+sizeof(orangeI->ip),sizeof(orangeI->boolean));
 		   return orangeI;
 		break;
 		case static_cast<int>(ID::TOKEN):
-           pac=(OrangePacket*) calloc  (6,sizeof(OrangePacket));
+                   orangePac=(Token**) calloc  (6,sizeof(Token));
 		   memcpy(&orangePac->id,&c,sizeof(orangePac->id));
 		   memcpy(&orangePac->ip,&c+sizeof(orangePac->id),sizeof(orangePac->ip));
 		   memcpy(&orangePac->node,&c+sizeof(orangePac->id)+sizeof(orangePac->ip),sizeof(orangePac->boolean));
@@ -207,7 +207,7 @@ Packet* Code::decode(char *c){
            return orangePac;
 		break;
 		 case static_cast<int>(ID::BCHUNK):
-         pac=(BluePacket*) calloc  (6,sizeof(BluePacket));
+         blueC=(BChunk*) calloc  (6,sizeof(BChunk));
          memcpy(&blueC->id,&c,sizeof(blueC->id));
          memcpy(&blueC->name[10],&c+sizeof(blueC->id),sizeof(blueC->name[10]));
          memcpy(&blueC->totalChunks,&c+sizeof(blueC->id)+sizeof(blueC->name[10]),sizeof(blueC->totalChunks));
@@ -217,14 +217,14 @@ Packet* Code::decode(char *c){
          return blueC;
         break;
     case static_cast<int>(ID::BHELLO):
-         pac=(BluePacket*) calloc  (3,sizeof(BluePacket));
+         blueH=(BHello*) calloc  (3,sizeof(BHello));
          memcpy(&blueH->id,&c,sizeof(blueH->id));
          memcpy(&blueH->name[10],&c+sizeof(blueH->id),sizeof(blueH->name[10]));
          memcpy(&blueH->node,&c+sizeof(blueH->id)+sizeof(blueH->name[10]),sizeof(blueH->node));
          return blueH;
     break;
     case static_cast<int>(ID::BEXIST):
-         pac=(BluePacket*) calloc  (4,sizeof(BluePacket));
+         blueE=(BExist*) calloc  (4,sizeof(BExist));
          memcpy(&blueE->id,&c,sizeof(blueE->id));
          memcpy(&blueE->name[10],&c+sizeof(blueE->id),sizeof(blueE->name[10]));
          memcpy(&blueE->question,&c+sizeof(blueE->id)+sizeof(blueE->name[10]),sizeof(blueE->question));
@@ -232,7 +232,7 @@ Packet* Code::decode(char *c){
          return blueE;
     break;
     case static_cast<int>(ID::BCOMPLETE):
-         pac=(BluePacket*) calloc  (5,sizeof(BluePacket));
+         blueCom=(BComplete*) calloc  (5,sizeof(BComplete));
          memcpy(&blueCom->id,&c,sizeof(blueCom->id));
          memcpy(&blueCom->name[10],&c+sizeof(blueCom->id),sizeof(blueCom->name[10]));
          memcpy(&blueCom->totalChunks,&c+sizeof(blueCom->id)+sizeof(blueCom->name[10]),sizeof(blueCom->totalChunks));
@@ -241,7 +241,7 @@ Packet* Code::decode(char *c){
          return blueCom;
     break;
     case static_cast<int>(ID::BGET):
-         pac=(BluePacket*) calloc  (6,sizeof(BluePacket));
+         blueG=(BGet*) calloc  (6,sizeof(BGet));
          memcpy(&blueG->id,&c,sizeof(blueG->id));
          memcpy(&blueG->name[10],&c+sizeof(blueG->id),sizeof(blueG->name[10]));
          memcpy(&blueG->totalChunks,&c+sizeof(blueG->id)+sizeof(blueG->name[10]),sizeof(blueG->totalChunks));
@@ -251,7 +251,7 @@ Packet* Code::decode(char *c){
          return blueG;
     break;
     case static_cast<int>(ID::BLOCALIZE):
-         pac=(BluePacket*) calloc  (6,sizeof(BluePacket));
+         blueL=(BLocalize*) calloc  (6,sizeof(BLocalize));
          memcpy(&blueL->id,&c,sizeof(blueL->id));
          memcpy(&blueL->name[10],&c+sizeof(blueL->id),sizeof(blueL->name[10]));
          memcpy(&blueL->question,&c+sizeof(blueL->id)+sizeof(blueL->name[10]),sizeof(blueL->question));
@@ -261,13 +261,13 @@ Packet* Code::decode(char *c){
          return blueL;
     break;
     case static_cast<int>(ID::BDELETE):
-         pac=(BluePacket*) calloc  (2,sizeof(BluePacket));
+         blueD=(BDelete*) calloc  (2,sizeof(BDelete));
          memcpy(&blueD->id,&c,sizeof(blueD->id));
          memcpy(&blueD->name[10],&c+sizeof(blueD->id),sizeof(blueD->name[10]));
          return blueD;
     break;
     case static_cast<int>(ID::ASSIGNMENT):
-         pac=(BlueOrange*) calloc  (5,sizeof(BlueOrange));
+         blueOrA=(Assignment*) calloc  (5,sizeof(Assignment));
          memcpy(&blueOrA->id,&c,sizeof(blueOrA->id));
          memcpy(&blueOrA->nodeID,&c+sizeof(blueOrA->id),sizeof(blueOrA->nodeID));
          memcpy(&blueOrA->totalNeighbors,&c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID),sizeof(blueOrA->totalNeighbors));
@@ -276,16 +276,17 @@ Packet* Code::decode(char *c){
          return blueOrA;
     break;
     case static_cast<int>(ID::CONNECT):
-         pac=(BlueOrange*) calloc  (1,sizeof(BlueOrange));
+         blueOrC=(Connect*) calloc  (1,sizeof(Connect));
          memcpy(&blueOrC->id,&c,sizeof(blueOrC->id));
          return blueOrC;
     break;
     case static_cast<int>(ID::GO):
-         pac=(BlueOrange*) calloc  (1,sizeof(BlueOrange));
+         blueOrG=(Go*) calloc  (1,sizeof(Go));
          memcpy(&blueOrG->id,&c,sizeof(blueOrG->id));
+         return blueOrG;
     break;
     case static_cast<int>(ID::GCHUNK):
-         pac=(GreenBlue*) calloc  (4,sizeof(GreenBlue));
+         greenC=(GChunk*) calloc  (4,sizeof(GChunk));
          memcpy(&greenC->id,&c,sizeof(greenC->id));
          memcpy(&greenC->name[10],c+sizeof(greenC->id),sizeof(greenC->name[10]));
          memcpy(&greenC->totalChunks,&c+sizeof(greenC->id)+sizeof(greenC->name[10]),sizeof(greenC->totalChunks));
@@ -293,27 +294,27 @@ Packet* Code::decode(char *c){
          return greenC;
     break;
     case static_cast<int>(ID::GEXIST):
-         pac=(GreenBlue*) calloc  (3,sizeof(GreenBlue));
+         greenE=(GExist*) calloc  (3,sizeof(GExist));
          memcpy(&greenE->id,&c,sizeof(greenE->id));
          memcpy(&greenE->name[10],&c+sizeof(greenE->id),sizeof(greenE->name[10]));
          memcpy(&greenE->exist,&c+sizeof(greenE->id)+sizeof(greenE->name[10]),sizeof(greenE->exist));
          return greenE;
     break;
     case static_cast<int>(ID::GCOMPLETE):
-         pac=(GreenBlue*) calloc  (3,sizeof(GreenBlue));
+         greenCom=(GComplete*) calloc  (3,sizeof(GComplete));
          memcpy(&greenCom->id,&c,sizeof(greenCom->id));
          memcpy(&greenCom->name[10],&c+sizeof(greenCom->id),sizeof(greenCom->name[10]));
          memcpy(&greenCom->complete,&c+sizeof(greenCom->id)+sizeof(greenCom->name[10]),sizeof(greenCom->complete));
          return greenCom;
     break;
     case static_cast<int>(ID::GDELETE):
-         pac=(GreenBlue*) calloc  (2,sizeof(GreenBlue));
+         greenD=(GDelete*) calloc  (2,sizeof(GDelete));
          memcpy(&greenD->id,&c,sizeof(greenD->id));
          memcpy(&greenD->name[10],&c+sizeof(greenD->id),sizeof(greenD->name[10]));
          return greenD;
     break;
     case static_cast<int>(ID::GLOCALIZE):
-         pac=(GreenBlue*) calloc  (6,sizeof(GreenBlue));
+         greenL=(GLocalize*) calloc  (6,sizeof(GLocalize));
          memcpy(&greenL->id,&c,sizeof(greenL->id));
          memcpy(&greenL->name[10],&c+sizeof(greenL->id),sizeof(greenL->name[10]));
          memcpy(&greenL->question,&c+sizeof(greenL->id)+sizeof(greenL->name[10]),sizeof(greenL->question));
@@ -323,7 +324,7 @@ Packet* Code::decode(char *c){
          return greenL;
     break;
     case static_cast<int>(ID::GKILL):
-         pac=(GreenBlue*) calloc  (3,sizeof(GreenBlue));
+         greenK=(GKill*) calloc  (3,sizeof(GKill));
          memcpy(&greenK->id,&c,sizeof(greenK->id));
          memcpy(&greenK->name[10],&c+sizeof(greenK->id),sizeof(greenK->name[10]));
          memcpy(&greenK->node,&c+sizeof(greenK->id)+sizeof(greenK->name[10]),sizeof(greenK->node));
@@ -333,5 +334,3 @@ Packet* Code::decode(char *c){
     }
 
 }
-
-
