@@ -40,7 +40,8 @@ class reUDP{
 		Socket sock;
 		std::unordered_map<uint16_t, struct map_entry *> sent; // Map that uses the IP and port as a key
 		std::queue<struct data_frame> inbox;
-		std::queue<char *> processed_messages;
+		std::queue<struct data_frame *> processed_messages;
+		Semaphore sem_recv();
 		void receiver();
 		void sender();
 	public:

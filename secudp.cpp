@@ -1,5 +1,6 @@
 #include "secudp.h"
 #include "socket.h"
+#include "semaphore.h"
 
 #include <unordered_map>
 #include <queue>
@@ -37,11 +38,11 @@ void reUDP::Sendto(const char * message, const char * destination, uint16_t port
 }
 
 void reUDP::Recvfrom(char * message){
-	//Para que Recvfrom se bloquee mientras no hayan mensajes se deberia de hacer una clase semaforo
+	sem_recv.wait();
 	if(processed_messages.size() > 0){
-		char * received_msg = processed_messages.front();
+		struct data_frame * received_msg = processed_messages.front();
 		processed_messages.pop();
-		memcpy((void *) message, (const void *) received_msg, PAYLOAD_SIZE);
+		memcpy((void *) message, (const void *) received_msg->payload, PAYLOAD_SIZE);
 		delete received_msg;
 	}
 }
@@ -54,6 +55,8 @@ void reUDP::receiver(){
 		if(receiver->type == 0){
 			receiver->type = 1;
 			sock.Sendto((const char *) receiver, sizeof(struct data_frame), &return_addr);
+			processed_messages.push(receiver);
+			sem_recv.signal();
 		} else {
 			if(sent.count(receiver->sn)){
 				sent[sn]->received = true;
