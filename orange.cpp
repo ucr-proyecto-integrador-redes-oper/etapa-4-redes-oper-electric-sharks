@@ -1,20 +1,20 @@
 #include "orange.h"
 #include "socket.h"
 
-
 #include <iostream>
 #include <string>
 #include <pthread.h>
+#include <ifaddrs.h>
 
 using namespace std;
 
 Orange::Orange(){
 }
 
-Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort){
-    this->id = id;
-    this->orangeInPort = orangeInPort;
-    this->orangeOutPort = orangeOutPort;
+Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges)
+: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), ipBuffer(nullptr), hostIpAddress(nullptr)
+{
+	
 }
 
 Orange::~Orange(){
@@ -111,8 +111,48 @@ void *Orange::senderHelper(void *context){
     return ((Orange *)context)->sender();
 }
 
+void Orange::getHostIP()
+{
+	struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+
+    getifaddrs(&ifAddrStruct);
+	int addressCount = 0;
+    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+        if (!ifa->ifa_addr) {
+            continue;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET) { // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            unsigned long address = ((struct in_addr*)&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr)->s_addr;
+            char buffer[16];
+            //printf("This address is: %s\n", make_ip(realAddress,  buffercito));
+            
+            if(addressCount == 6)
+				this->hostIpAddress = strdup(make_ip(address,  buffer));
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
+        } else if (ifa->ifa_addr->sa_family == AF_INET6) { // check it is IP6
+            // is a valid IP6 Address
+            tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
+            char addressBuffer[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
+            //printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer); 
+        } 
+        ++addressCount;
+    }
+    if(ifAddrStruct!=NULL) 
+		freeifaddrs(ifAddrStruct);
+		
+    printf("Host IP: %s\n", this->hostIpAddress); 
+}
+
+
 int main(int argc, char* argv[]){
-    int id;
+    /*int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     get_args(id, orangeInPort, orangeOutPort, argc, argv);
@@ -126,6 +166,7 @@ int main(int argc, char* argv[]){
     int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
     int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
     
-    orangeNode.requestIP();
-
+    orangeNode.requestIP();*/
+	Orange node;
+	node.getHostIP();
 }

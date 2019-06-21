@@ -1,6 +1,5 @@
 #ifndef ORANGE_H
 #define ORANGE_H
-#endif
 
 #include "packet.h"
 #include <pthread.h>
@@ -11,6 +10,10 @@ using namespace std;
 class Orange{
     private:
         unsigned short int bluePort;
+        size_t numTotalOranges;
+        
+        char* hostIpAddress;
+        unsigned int* ipBuffer;
 
         queue<Packet> privateInBuffer;
         queue<Packet> privateOutBuffer;
@@ -23,6 +26,7 @@ class Orange{
         void * reciver();
         void * processer();
         void * sender();
+        
 
     public:
         unsigned short int orangeInPort;
@@ -33,11 +37,14 @@ class Orange{
 
         Orange();
         ~Orange();
-        Orange(int, unsigned short int, unsigned short int);
+        Orange(int, unsigned short int, unsigned short int, int);
         void requestIP();
         static void * reciverHelper(void *context);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
         void init();
+        void getHostIP();
 };
+
+#endif
 
