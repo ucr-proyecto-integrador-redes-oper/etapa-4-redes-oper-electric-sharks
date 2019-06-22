@@ -1,4 +1,5 @@
 #include "Orange.h"
+#include "loadCSV.h"
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -10,9 +11,15 @@
 #include <netinet/in.h> 
 #include <arpa/inet.h> 
 
-Orange::Orange(int total_oranges)
+#include <string>
+#include <list>
+#include <unordered_map>
+#include <iostream>
+
+Orange::Orange(std::string csv_file, int total_oranges)
 : num_total_oranges(total_oranges), ip_buffer(nullptr), host_ip_addr(nullptr)
 {
+	loadCSV(csv_file, &blue_graph);
 	this->ip_buffer = new unsigned int[this->num_total_oranges]();
 }
 
@@ -46,9 +53,20 @@ void Orange::get_host_ip()
     printf("Host IP: %s\n", this->host_ip_addr); 
 }
 
+void Orange::print_graph(){
+	for(auto it = blue_graph.begin(); it != blue_graph.end(); ++it){
+		std::cout << it->first << ": ";
+		for(auto lit = it->second.begin(); lit != it->second.end(); ++lit){
+			std::cout << *lit << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
 int main()
 {
 	Orange node;
 	node.get_host_ip();
+	node.print_graph();
 	return 0;
 }

@@ -2,12 +2,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#define DEBUG
-
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 void Semaphore::wait(){
 	valueMtx.lock();
 	if(value == 0){
