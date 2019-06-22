@@ -20,15 +20,37 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	this->blueSocket = new Socket(Socket::Protocol::UDP);
 }
 
-Orange::~Orange(){
+Orange::~Orange()
+{
+	sem_destroy(&this->InBufferSem);
+	sem_destroy(&this->OutBufferSem);
+	/*delete this->orangeSocket;
+	delete this->blueSocket;*/
 }
 
 void Orange::requestIP(){
     cout <<"Una vez que todos los nodos naranjas estén corriendo, ingrese el número IP del vecino izquierdo"<<endl;
-    cin >> this->leftIP;
-
+    bool validIp = true;
+	do{
+		cin >> this->leftIP;
+		validIp = (bool) validateIP(this->leftIP);
+		if(!validIp)
+			cout << "Direccion IP incorrecta! Ingrese una direccion valida: " << endl;
+	}while(!validIp);
+	
     cout <<"Ingrese el número IP del vecino derecho"<<endl;
-    cin >> this->rightIP;
+    do{
+		cin >> this->rightIP;
+		validIp = (bool) validateIP(this->rightIP);
+		if(!validIp)
+			cout << "Direccion IP incorrecta! Ingrese una direccion valida: " << endl;
+	}while(!validIp);
+}
+
+int Orange::validateIP(char* ip)
+{
+	char ipBuffer[IP_LEN];
+	return (inet_pton(AF_INET, ip, ipBuffer) == 1 ? 1 : 0);
 }
 
 ///Funcion que verifica la cantidad de datos por consola y los convierte de strings a los datos de la clase Orange
@@ -42,8 +64,8 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
             exit(EXIT_FAILURE);
         default:
 
-            if((id = stoi(argv[1])) == 0 || (orangeInPort = (unsigned short) stoi(argv[2], NULL, 0)) == 0  || \
-            (orangeOutPort = (unsigned short) stoi(argv[3], NULL, 0)) == 0){ // Si el argumento no es un número válido el programa se cae aquí
+            if((id = stoi(argv[1])) == 0 || (orangeInPort = (unsigned short) stoi(argv[2], NULL)) == 0  || \
+            (orangeOutPort = (unsigned short) stoi(argv[3], NULL)) == 0){ // Si el argumento no es un número válido el programa se cae aquí
 				perror("Invalid argument!\n");
 				printf("Format: %s <port>\n", argv[0]);
 				exit(EXIT_FAILURE);
@@ -154,6 +176,16 @@ void Orange::getHostIP()
 	struct ifaddrs *ifaddr, *ifa;
     int family, s;
     char host[NI_MAXHOST];
+    memset(host, 0, NI_MAXHOST);
+    memset(this->myIP, 0, IP_LEN);
+    
+    string interfaces[NUM_INTERFACES];
+    
+    /*Posibles interfaces de las que se puede obtener la IP del host.*/
+    interfaces[0] = string("eno1");
+    interfaces[1] = string("wlo1");
+    interfaces[2] = string("eth0");
+    interfaces[3] = string("enp1s0");
 
     if (getifaddrs(&ifaddr) == -1) 
     {
@@ -161,26 +193,29 @@ void Orange::getHostIP()
         exit(EXIT_FAILURE);
     }
 
+	for(int interface = 0; interface < NUM_INTERFACES; ++interface){
+		for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+			if (ifa->ifa_addr == NULL){
+				continue;  
+			}
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr == NULL)
-            continue;  
+			s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 
-        s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in),host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
-
-        if((strcmp(ifa->ifa_name,"eno1")==0)&&(ifa->ifa_addr->sa_family==AF_INET))
-        {
-            if (s != 0)
-            {
-                printf("getnameinfo() failed: %s\n", gai_strerror(s));
-                exit(EXIT_FAILURE);
-            } 
-            memcpy(this->myIP, host, IP_LEN);
-        }
-    }
+			if((strcmp(ifa->ifa_name, interfaces[interface].c_str())==0)){
+				/*Si la direccion es valida y no es loopback, se asigna al nodo naranja*/
+				if(validateIP(host) && strcmp("127.0.0.1", host)){
+					memcpy(this->myIP, host, IP_LEN);
+					cout << "Dirección IP: " << host << ", interfaz: " << ifa->ifa_name << endl;
+					break;
+				}
+			}
+		}
+	}
 
     freeifaddrs(ifaddr);
-    printf("Host IP: %s\n", this->myIP); 
+    if(!validateIP(this->myIP)){
+		error_exit(EXIT_FAILURE, "No se pudo obtener la IP del host!\n");
+	}
 }
 
 void Orange::beginContention()
@@ -192,7 +227,7 @@ void Orange::beginContention()
 
 
 int main(int argc, char* argv[]){
-    /*int id;
+    int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     get_args(id, orangeInPort, orangeOutPort, argc, argv);
@@ -202,8 +237,8 @@ int main(int argc, char* argv[]){
     pthread_t processer;
     pthread_t sender;
     
-    orangeNode.requestIP();
-	*/Orange node;
+   // orangeNode.requestIP();
+	Orange node;
 	node.getHostIP();
 /*
     int resReciver = pthread_create(&reciver, NULL, &Orange::reciverHelper, &orangeNode);

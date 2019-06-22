@@ -5,15 +5,17 @@
 #include "orangePacket.h"
 #include "socket.h"
 #include "encoder.h"
+#include "error_handler.h"
 
 #include <pthread.h>
 #include <queue>
 #include <semaphore.h>
 
-#define IP_LEN 15
+#define IP_LEN 16
 #define BUF_SIZE 1024
 #define ORANGE_PORT 11000
 #define BLUE_PORT 12000
+#define NUM_INTERFACES 4
 
 using namespace std;
 
@@ -44,6 +46,7 @@ class Orange{
         void * processer();
         void * sender();
         void beginContention();
+        int validateIP(char* ip);
         
 
     public:
