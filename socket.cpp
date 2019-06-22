@@ -2,6 +2,7 @@
 #include "error_handler.h"
 
 
+#include <cstdint>
 #include <iostream>
 
 using namespace std;
@@ -112,7 +113,7 @@ int Socket::Sendto(const char * message, int len, const char * destination, int 
 	return sent;
 }
 
-int Socket::Sendto(const char * message, int len, struct in_addr addr, int port){
+int Socket::Sendto(const char * message, int len, struct in_addr addr, uint16_t port){
 	struct sockaddr_in dest_addr;
 	dest_addr.sin_addr = addr;
 	dest_addr.sin_port = htons(port);

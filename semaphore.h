@@ -10,10 +10,9 @@ class Semaphore{
 		std::mutex valueMtx;
 		std::mutex semMtx;
 		std::condition_variable cv;
-		std::unique_lock<std::mutex> lck;
 		
 	public:
-		Semaphore(int initVal = 0) : lck(semMtx), value(initVal) {}
+		Semaphore(int initVal = 0) :  value(initVal) {}
 		void wait();
 		void signal();
 };

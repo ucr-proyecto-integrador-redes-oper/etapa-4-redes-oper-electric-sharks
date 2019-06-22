@@ -10,9 +10,11 @@
 #include <arpa/inet.h>
 
 #include "socket.h"
+#include "semaphore.h"
+//#include "Semaphore.h"
 
 #define PAYLOAD_SIZE 1024
-#define WAIT_TIME 5
+#define WAIT_TIME 50
 
 struct data_frame{
 	uint8_t type;
@@ -31,21 +33,24 @@ struct map_entry{
 	bool received;
 };
 
-// Necesito un hilo que este escuchando mensajes de entrada y que envie un ack o ponga el mensaje en una cola
-// Necesito un hilo que este manejando el timeout y que cada cierto tiempo envie los mensajes en el mapa
-
 class reUDP{
 	private:
 		uint16_t sn;
 		Socket sock;
-		std::unordered_map<uint16_t, struct map_entry *> sent; // Map that uses the IP and port as a key
-		std::queue<struct data_frame> inbox;
+		std::unordered_map<uint16_t, struct map_entry *> sent; // Map that uses the sn as a key
 		std::queue<struct data_frame *> processed_messages;
-		Semaphore sem_recv();
+		Semaphore sem_recv;
+		Semaphore sem_map;
+		Semaphore sem_queue;
 		void receiver();
 		void sender();
 	public:
-		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX) {}
+		#ifdef SEMAPHORE_H
+		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX), sem_recv(KEY_CRIS, 0), sem_map(KEY_ASCH, 1), sem_queue(KEY_ROY, 1) {}
+		#else
+		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX), sem_map(1), sem_queue(1) {}
+		#endif
+		~reUDP();
 		void run();
 		void Sendto(const char *, const char *, uint16_t);
 		void Recvfrom(char *);

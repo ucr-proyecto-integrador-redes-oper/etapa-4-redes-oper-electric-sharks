@@ -2,23 +2,28 @@
 #include <mutex>
 #include <condition_variable>
 
+#define DEBUG
+
+#ifdef DEBUG
+#include <iostream>
+#endif
+
 void Semaphore::wait(){
+	std::unique_lock<std::mutex> lck(semMtx);
 	valueMtx.lock();
 	if(value == 0){
 		valueMtx.unlock();
 		cv.wait(lck);
-
-		valueMtx.lock();
-		value -= 1;
-		valueMtx.unlock();
-		
 	} else {
-		value -= 1;
 		valueMtx.unlock();
 	}
+	valueMtx.lock();
+	value -= 1;
+	valueMtx.unlock();
 }
 
 void Semaphore::signal(){
+	std::unique_lock<std::mutex> lck(semMtx);
 	valueMtx.lock();
 	value += 1;
 	valueMtx.unlock();
