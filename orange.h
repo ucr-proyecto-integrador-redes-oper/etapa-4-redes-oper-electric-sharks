@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <queue>
 #include <list>
+#include <vector>
 #include <unordered_map>
 #include <semaphore.h>
 
@@ -26,12 +27,12 @@ class Orange{
         unsigned short int bluePort;
         size_t numTotalOranges;
         
-        unsigned int* ipBuffer;
+        vector<unsigned int> allNodesIP;
 
-        queue<Packet*> privateInBuffer;
-        queue<Packet*> privateOutBuffer;
-        queue<Packet*> sharedInBuffer;
-        queue<Packet*> sharedOutBuffer;
+        queue<PacketEntry*> privateInBuffer;
+        queue<PacketEntry*> privateOutBuffer;
+        queue<PacketEntry*> sharedInBuffer;
+        queue<PacketEntry*> sharedOutBuffer;
         
         unordered_map<int, list<int>> blue_graph;
 
@@ -51,6 +52,8 @@ class Orange{
         void * sender(Orange*);
         void beginContention(Orange*);
         int validateIP(char* ip);
+        void addToIPList(unsigned int ip);
+        unsigned long findMinIP();
         
 
     public:

@@ -1,6 +1,7 @@
 #include "orange.h"
 #include "loadCSV.h"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <string>
@@ -8,11 +9,12 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <thread>
+#include <limits>
 
 using namespace std;
 
 Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges, string csv_file)
-: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), ipBuffer(nullptr)
+: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
@@ -21,6 +23,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	this->orangeSocket = new Socket(Protocol::UDP);
 	this->blueSocket = new Socket(Protocol::UDP);
 	loadCSV(csv_file, &this->blue_graph);
+	this->allNodesIP.resize(0);
 }
 
 Orange::~Orange()
@@ -80,20 +83,30 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
 void *Orange::receiver(Orange* orange){
     /*Crea el socket */
     char* buffer = new char[BUF_SIZE];
+    char senderBuffer[IP_LEN];
     memset(buffer, 0, BUF_SIZE);
     Packet* currentPacket;
+    PacketEntry* currentEntry = nullptr;
+    struct sockaddr_in senderAddr;
     int status = 0;
     
     
     while(true){
         /*Lee el socket */
-        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT);
+        currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
+        
+        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
         
         /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer);
 		
+		orange->orangeSocket->decode_ip(senderAddr.sin_addr.s_addr, senderBuffer);
+		
+		currentEntry->packet = currentPacket;
+		currentEntry->receivedFromLeft = (strcmp(buffer, orange->leftIP) == 0 ? true : false);
+		
 		/*Mete el paquete a la cola privada*/
-		orange->privateInBuffer.push(currentPacket);
+		orange->privateInBuffer.push(currentEntry);
 		
 		memset(buffer, 0, BUF_SIZE);
 		
@@ -113,8 +126,6 @@ void *Orange::receiver(Orange* orange){
 		/*Avisa al processer que hay más paquetes para procesar con un signal*/
 		sem_post(&orange->InBufferSem);
 		
-		//free(currentPacket);
-		
     }
 }
 
@@ -124,6 +135,9 @@ void *Orange::receiverHelper(void *context){
 
 ///Funcion para el thread que toma un paquete de la cola compartida, lo procesa y pone mensajes en la cola compartida para el siguiente thread
 void *Orange::processer(Orange* orange){
+	Packet* packet;
+	PacketEntry* currentEntry;
+	
 	beginContention(orange);
 	
     while(true){
@@ -132,17 +146,41 @@ void *Orange::processer(Orange* orange){
         sem_wait(&orange->InBufferSem);	//Espera a que haya algo en la cola para procesar
         pthread_mutex_lock(&orange->semIn);
         
-        Packet* packet = orange->sharedInBuffer.front();
+        currentEntry = orange->sharedInBuffer.front();
         orange->sharedInBuffer.pop();
         
         pthread_mutex_unlock(&orange->semIn);
 
 		/*Hace las diferentes acciones con los paquetes */
-		switch(packet->id){
+		switch(currentEntry->packet->id){
 			case ID::INITIAL_TOKEN:
 				char buffer[IP_LEN];
-				orange->orangeSocket->decode_ip((static_cast<InitialToken*>(packet))->ip, buffer);
-				cout << "Node says: " << buffer << endl;
+				orange->orangeSocket->decode_ip((static_cast<InitialToken*>(currentEntry->packet))->ip, buffer);
+				assert(currentEntry->packet);
+				orange->addToIPList(((InitialToken*)currentEntry->packet)->ip);
+				cout << "Node " << (currentEntry->receivedFromLeft? orange->leftIP : orange->rightIP) <<" says hello! " << endl;
+				
+				/*Si el paquete que recibió no lo creó este nodo*/
+				if(strcmp(buffer, orange->myIP) != 0){
+					/*Si el paquete lo recibió por el lado izquierdo, lo reenvía al nodo derecho, y si no al izquierdo.*/
+					currentEntry->sendTo = (currentEntry->receivedFromLeft ? SEND_TO_RIGHT : SEND_TO_LEFT);
+					pthread_mutex_lock(&semOut);
+					orange->sharedOutBuffer.push(currentEntry);
+					pthread_mutex_unlock(&semOut);
+					sem_post(&orange->OutBufferSem);
+				}else{
+					/*Si el paquete que recibió lo creó este nodo, lo bota de la red.*/
+					free(currentEntry->packet);
+					free(currentEntry);
+				}
+				
+				if(orange->allNodesIP.size() == orange->numTotalOranges - 1){
+					/*Si la ip de este naranja es menor que la de todos sus vecinos, crea el token.*/
+					if(orange->orangeSocket->encode_ip(orange->myIP) < orange->findMinIP()){
+						cout << "Gané!" << endl;
+					}
+				}
+				
 			break;
 		}
         
@@ -167,12 +205,33 @@ void *Orange::sender(Orange* orange){
     
     while(true){
         if(!orange->privateOutBuffer.empty()){
-			Packet* toSend = orange->privateOutBuffer.front();
+			PacketEntry* currentEntry = nullptr;
+			currentEntry = orange->privateOutBuffer.front();
+			assert(currentEntry);
+			Packet* toSend = currentEntry->packet;
 			orange->privateOutBuffer.pop();
 			rawPacket = coder.encode(toSend);
 			assert(rawPacket);
-			orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
-            /*Lo envia con el socket */
+			switch(currentEntry->sendTo){
+				case SEND_TO_RIGHT:
+					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
+				break;
+				
+				case SEND_TO_LEFT:
+					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->leftIP, ORANGE_PORT);
+				break;
+				
+				case SEND_TO_BOTH:
+					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
+					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->leftIP, ORANGE_PORT);
+				break;
+				
+				default:
+					cout << "Unknown direction for packet!" << endl;
+			}
+			
+			free(toSend);
+            free(currentEntry);
         }
         else{                                       //Si la cola privada está vacía, busca en la cola compartida
 			sem_wait(&orange->OutBufferSem);
@@ -243,8 +302,12 @@ void Orange::beginContention(Orange* orange)
 	p->id = ID::INITIAL_TOKEN;
 	p->ip = orange->orangeSocket->encode_ip(orange->myIP);
 	
+	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
+	newPacket->packet = p;
+	newPacket->sendTo = SEND_TO_BOTH;
+	
 	pthread_mutex_lock(&orange->semOut);
-	orange->privateOutBuffer.push(p);
+	orange->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&orange->semOut);
 	sem_post(&orange->OutBufferSem);
 }
@@ -257,6 +320,32 @@ void Orange::print_graph(){
 		}
 		cout << endl;
 	}
+}
+
+void Orange::addToIPList(unsigned int ip)
+{
+	/*Si ya tiene las IP de todos sus vecinos, no se debe hacer nada.*/
+	if(this->allNodesIP.size() >= this->numTotalOranges - 1)
+		return;
+		
+	/*Si la IP ya está en el vector, no hace nada, sino la agrega.*/
+	auto position = find(this->allNodesIP.begin(), this->allNodesIP.end(), ip);
+	if(position != this->allNodesIP.end())
+		return;
+	else
+		this->allNodesIP.push_back(ip);
+	
+}
+
+unsigned long Orange::findMinIP()
+{
+	unsigned int min = std::numeric_limits<int>::max();
+	if(!this->allNodesIP.empty()){
+		for(auto ipAddr : this->allNodesIP)
+			if(ipAddr < min)
+				min = ipAddr;
+	}
+	return min;
 }
 
 int main(int argc, char* argv[]){

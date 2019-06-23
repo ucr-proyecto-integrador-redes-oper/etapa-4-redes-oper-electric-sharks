@@ -9,6 +9,10 @@
 
 #define CHUNK_SIZE 10240 //10KB
 #define NAME_SIZE 10
+#define IP_LEN 16
+#define SEND_TO_RIGHT 0
+#define SEND_TO_LEFT 1
+#define SEND_TO_BOTH 2
 
 /// Struct with enumerations that identify the packets by their ID field.
 typedef struct ID
@@ -62,5 +66,12 @@ struct Packet
 	///Packet identifier.
 	unsigned short int id;
 };
+
+typedef struct PacketEntry
+{
+	Packet* packet;
+	bool receivedFromLeft;
+	int sendTo;
+} PacketEntry;
 
 #endif // PACKET_H
