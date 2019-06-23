@@ -1,5 +1,4 @@
 #include "encoder.h"
-
 #include <iostream>
 using namespace std;
 
@@ -15,27 +14,6 @@ char* Code::encode(Packet *pac){
     char *c;
     int id = pac->id;
 
-    //Declaracion de cada struct y de ahí accede a los campos de el y de los que hereda*************
-    InitialToken *orangeI;
-    Token *orangePac;
-    BChunk *blueC;
-    BHello *blueH;
-    BExist *blueE;
-    BComplete *blueCom;
-    BGet *blueG;
-    BLocalize *blueL;
-    BDelete *blueD;
-    Assignment *blueOrA;
-    Connect *blueOrC;
-    Go *blueOrG;
-    GChunk *greenC;
-    GExist *greenE;
-    GComplete *greenCom;
-    GDelete *greenD;
-    GLocalize *greenL;
-    GKill *greenK;
-    //*****************************
-	
     switch(id){
     case static_cast<int>(ID::INITIAL_TOKEN):
          c = new char[6]();
@@ -43,122 +21,122 @@ char* Code::encode(Packet *pac){
          memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
         break;
     case static_cast<int>(ID::TOKEN_EMPTY):
-         c = new char[15];
-         memcpy(c,&pac->id,sizeof(pac->id));
-         memcpy(c+sizeof(orangePac->id),&orangePac->ip,sizeof(orangePac->ip));
-         memcpy(c+sizeof(orangePac->id)+sizeof(orangePac->ip),&orangePac->boolean,sizeof(orangePac->boolean));
-         memcpy(c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean),&orangePac->node,sizeof(orangePac->node));
-         memcpy(c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean)+sizeof(orangePac->node),&orangePac->assignedIp,sizeof(orangePac->assignedIp));
-         memcpy(c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean)+sizeof(orangePac->node)+sizeof(orangePac->assignedIp),&orangePac->assignedPort,sizeof(orangePac->assignedPort));
+         c = new char[15]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
+         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip),&((Token*)pac)->boolean,sizeof(Token::boolean));
+         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean),&((Token*)pac)->node,sizeof(Token::node));
+         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
+         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node)+sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
         break;
     case static_cast<int>(ID::BCHUNK):
-         c = new char[10262];
-         memcpy(c,&blueC->id,sizeof(blueC->id));
-         memcpy(c+sizeof(blueC->id),&blueC->name[10],sizeof(blueC->name[10]));
-         memcpy(c+sizeof(blueC->id)+sizeof(blueC->name[10]),&blueC->totalChunks,sizeof(blueC->totalChunks));
-         memcpy(c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks),&blueC->chunkNumber,sizeof(blueC->chunkNumber));
-         memcpy(c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks)+sizeof(blueC->chunkNumber),&blueC->data[10240],sizeof(blueC->data[10240]));
-         memcpy(c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks)+sizeof(blueC->chunkNumber)+sizeof(blueC->data[10240]),&blueC->hops,sizeof(blueC->hops));
+         c = new char[10262]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c + sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BChunk*)pac)->totalChunks,sizeof(BChunk::totalChunks));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks),&((BChunk*)pac)->chunkNumber,sizeof(BChunk::chunkNumber));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber),&((BChunk*)pac)->data[10240],sizeof(BChunk::data[10240]));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber)+sizeof(BChunk::data[10240]),&((BChunk*)pac)->hops,sizeof(BChunk::hops));
         break;
     case static_cast<int>(ID::BHELLO):
-         c = new char[14];
-         memcpy(c,&blueH->id,sizeof(blueH->id));
-         memcpy(c+sizeof(blueH->id),&blueH->name[10],sizeof(blueH->name[10]));
-         memcpy(c+sizeof(blueH->id)+sizeof(blueH->name[10]),&blueH->node,sizeof(blueH->node));
+         c = new char[14]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BHello*)pac)->node,sizeof(BHello::node));
     break;
     case static_cast<int>(ID::BEXIST):
-         c = new char[14];
-         memcpy(c,&blueE->id,sizeof(blueE->id));
-         memcpy(c+sizeof(blueE->id),&blueE->name[10],sizeof(blueE->name[10]));
-         memcpy(c+sizeof(blueE->id)+sizeof(blueE->name[10]),&blueE->question,sizeof(blueE->question));
-         memcpy(c+sizeof(blueE->id)+sizeof(blueE->name[10])+sizeof(blueE->question),&blueE->exist,sizeof(blueE->exist));
+         c = new char[14]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BExist*)pac)->question,sizeof(BExist::question));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BExist::question),&((BExist*)pac)->exist,sizeof(BExist::exist));
     break;
     case static_cast<int>(ID::BCOMPLETE):
-         c = new char[21];
-         memcpy(c,&blueCom->id,sizeof(blueCom->id));
-         memcpy(c+sizeof(blueCom->id),&blueCom->name[10],sizeof(blueCom->name[10]));
-         memcpy(c+sizeof(blueCom->id)+sizeof(blueCom->name[10]),&blueCom->totalChunks,sizeof(blueCom->totalChunks));
-         memcpy(c+sizeof(blueCom->id)+sizeof(blueCom->name[10])+sizeof(blueCom->totalChunks),&blueCom->question,sizeof(blueCom->question));
-         memcpy(c+sizeof(blueCom->id)+sizeof(blueCom->name[10])+sizeof(blueCom->totalChunks)+sizeof(blueCom->question),&blueCom->chunkNumber,sizeof(blueCom->chunkNumber));
+         c = new char[21]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BComplete*)pac)->totalChunks,sizeof(BComplete::totalChunks));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks),&((BComplete*)pac)->question,sizeof(BComplete::question));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks)+sizeof(BComplete::question),&((BComplete*)pac)->chunkNumber,sizeof(BComplete::chunkNumber));
     break;
     case static_cast<int>(ID::BGET):
-         c = new char[10261];
-         memcpy(c,&blueG->id,sizeof(blueG->id));
-         memcpy(c+sizeof(blueG->id),&blueG->name[10],sizeof(blueG->name[10]));
-         memcpy(c+sizeof(blueG->id)+sizeof(blueG->name[10]),&blueG->totalChunks,sizeof(blueG->totalChunks));
-         memcpy(c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks),&blueG->question,sizeof(blueG->question));
-         memcpy(c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks)+sizeof(blueG->question)+sizeof(blueG->question),&blueG->chunkNumber,sizeof(blueG->chunkNumber));
-         memcpy(c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks)+sizeof(blueG->question)+sizeof(blueG->question)+sizeof(blueG->chunkNumber),&blueG->chunk[10240],sizeof(blueG->chunk[10240]));
+         c = new char[10261]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BGet*)pac)->totalChunks,sizeof(BGet::totalChunks));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks),&((BGet*)pac)->question,sizeof(BGet::question));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question),&((BGet*)pac)->chunkNumber,sizeof(BGet::chunkNumber));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::chunkNumber),&((BGet*)pac)->chunk[10240],sizeof(BGet::chunk[10240]));
     break;
     case static_cast<int>(ID::BLOCALIZE):
-         c = new char[23];
-         memcpy(c,&blueL->id,sizeof(blueL->id));
-         memcpy(c+sizeof(blueL->id),&blueL->name[10],sizeof(blueL->name[10]));
-         memcpy(c+sizeof(blueL->id)+sizeof(blueL->name[10]),&blueL->question,sizeof(blueL->question));
-         memcpy(c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question),&blueL->ip,sizeof(blueL->ip));
-         memcpy(c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question)+sizeof(blueL->ip),&blueL->port,sizeof(blueL->port));
-         memcpy(c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question)+sizeof(blueL->ip)+sizeof(blueL->port),&blueL->chunkNumber,sizeof(blueL->chunkNumber));
+         c = new char[23]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BLocalize*)pac)->question,sizeof(BLocalize::question));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question),&((BLocalize*)pac)->ip,sizeof(BLocalize::ip));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip),&((BLocalize*)pac)->port,sizeof(BLocalize::port));
+         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip)+sizeof(BLocalize::port),&((BLocalize*)pac)->chunkNumber,sizeof(BLocalize::chunkNumber));
 
     break;
     case static_cast<int>(ID::BDELETE):
-         c = new char[21];
-         memcpy(c,&blueD->id,sizeof(blueD->id));
-         memcpy(c+sizeof(blueD->id),&blueD->name[10],sizeof(blueD->name[10]));
+         c = new char[21]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
     break;
     case static_cast<int>(ID::ASSIGNMENT):
-         c = new char[12];
-         memcpy(c,&blueOrA->id,sizeof(blueOrA->id));
-         memcpy(c+sizeof(blueOrA->id),&blueOrA->nodeID,sizeof(blueOrA->nodeID));
-         memcpy(c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID),&blueOrA->totalNeighbors,sizeof(blueOrA->totalNeighbors));
-         memcpy(c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID)+sizeof(blueOrA->totalNeighbors),&blueOrA->ip,sizeof(blueOrA->ip));
-         memcpy(c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID)+sizeof(blueOrA->totalNeighbors)+sizeof(blueOrA->ip),&blueOrA->port,sizeof(blueOrA->port));
+         c = new char[12]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((Assignment*)pac)->nodeID,sizeof(Assignment::nodeID));
+         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID),&((Assignment*)pac)->totalNeighbors,sizeof(Assignment::totalNeighbors));
+         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors),&((Assignment*)pac)->ip,sizeof(Assignment::ip));
+         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors)+sizeof(Assignment::ip),&((Assignment*)pac)->port,sizeof(Assignment::port));
     break;
     case static_cast<int>(ID::CONNECT):
-         c = new char[2];
-         memcpy(c,&blueOrC->id,sizeof(blueOrC->id));
+         c = new char[2]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
     break;
     case static_cast<int>(ID::GO):
-         c = new char[2];
-         memcpy(c,&blueOrG->id,sizeof(blueOrG->id));
+         c = new char[2]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
     break;
     case static_cast<int>(ID::GCHUNK):
-         c = new char[10260];
-         memcpy(c,&greenC->id,sizeof(greenC->id));
-         memcpy(c+sizeof(greenC->id),&greenC->name[10],sizeof(greenC->name[10]));
-         memcpy(c+sizeof(greenC->id)+sizeof(greenC->name[10]),&greenC->totalChunks,sizeof(greenC->totalChunks));
-         memcpy(c+sizeof(greenC->id)+sizeof(greenC->name[10])+sizeof(greenC->totalChunks),&greenC->data[10240],sizeof(greenC->data[10240]));
+         c = new char[10260]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GChunk*)pac)->totalChunks,sizeof(GChunk::totalChunks));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GChunk::totalChunks),&((GChunk*)pac)->data[10240],sizeof(GChunk::data[10240]));
     break;
     case static_cast<int>(ID::GEXIST):
-         c = new char[13];
-         memcpy(c,&greenE->id,sizeof(greenE->id));
-         memcpy(c+sizeof(greenE->id),&greenE->name[10],sizeof(greenE->name[10]));
-         memcpy(c+sizeof(greenE->id)+sizeof(greenE->name[10]),&greenE->exist,sizeof(greenE->exist));
+         c = new char[13]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GExist*)pac)->exist,sizeof(GExist::exist));
     break;
     case static_cast<int>(ID::GCOMPLETE):
-         c = new char[13];
-         memcpy(c,&greenCom->id,sizeof(greenCom->id));
-         memcpy(c+sizeof(greenCom->id),&greenCom->name[10],sizeof(greenCom->name[10]));
-         memcpy(c+sizeof(greenCom->id)+sizeof(greenCom->name[10]),&greenCom->complete,sizeof(greenCom->complete));
+         c = new char[13]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GComplete*)pac)->complete,sizeof(GComplete::complete));
     break;
     case static_cast<int>(ID::GDELETE):
-         c = new char[12];
-         memcpy(c,&greenD->id,sizeof(greenD->id));
-         memcpy(c+sizeof(greenD->id),&greenD->name[10],sizeof(greenD->name[10]));
+         c = new char[12]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
     break;
     case static_cast<int>(ID::GLOCALIZE):
-         c = new char[23];
-         memcpy(c,&greenL->id,sizeof(greenL->id));
-         memcpy(c+sizeof(greenL->id),&greenL->name[10],sizeof(greenL->name[10]));
-         memcpy(c+sizeof(greenL->id)+sizeof(greenL->name[10]),&greenL->question,sizeof(greenL->question));
-         memcpy(c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question),&greenL->ip,sizeof(greenL->ip));
-         memcpy(c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question)+sizeof(greenL->ip),&greenL->port,sizeof(greenL->port));
-         memcpy(c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question)+sizeof(greenL->ip)+sizeof(greenL->port),&greenL->chunkNumber,sizeof(greenL->chunkNumber));
+         c = new char[23]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GLocalize*)pac)->question,sizeof(GLocalize::question));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question),&((GLocalize*)pac)->ip,sizeof(GLocalize::ip));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip),&((GLocalize*)pac)->port,sizeof(GLocalize::port));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip)+sizeof(GLocalize::port),&((GLocalize*)pac)->chunkNumber,sizeof(GLocalize::chunkNumber));
     break;
     case static_cast<int>(ID::GKILL):
-         c = new char[14];
-         memcpy(c,&greenK->id,sizeof(greenK->id));
-         memcpy(c+sizeof(greenK->id),&greenK->name[10],sizeof(greenK->name[10]));
-         memcpy(c+sizeof(greenK->id)+sizeof(greenK->name[10]),&greenK->node,sizeof(greenK->node));
+         c = new char[14]();
+         memcpy(c,&pac->id,sizeof(Packet::id));
+         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
+         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
     break;
 
     }
@@ -196,137 +174,137 @@ Packet* Code::decode(char *c){
 		   return orangeI;
 		break;
 		case static_cast<int>(ID::TOKEN_EMPTY):
-           orangePac=(Token*) calloc  (6,sizeof(Token));
-		   memcpy(&orangePac->id,&c,sizeof(orangePac->id));
-		   memcpy(&orangePac->ip,&c+sizeof(orangePac->id),sizeof(orangePac->ip));
-		   memcpy(&orangePac->node,&c+sizeof(orangePac->id)+sizeof(orangePac->ip),sizeof(orangePac->boolean));
-		   memcpy(&orangePac->node,&c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean),sizeof(orangePac->node));
-		   memcpy(&orangePac->assignedIp,&c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean)+sizeof(orangePac->node),sizeof(orangePac->assignedIp));
-		   memcpy(&orangePac->assignedPort,&c+sizeof(orangePac->id)+sizeof(orangePac->ip)+sizeof(orangePac->boolean)+sizeof(orangePac->node)+sizeof(orangePac->assignedIp),sizeof(orangePac->assignedPort));
+           orangePac=(Token*) calloc  (1,sizeof(Token));
+		   memcpy(&orangePac->id,c,sizeof(Packet::id));
+		   memcpy(&orangePac->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
+		   memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip),sizeof(Token::boolean));
+		   memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean),sizeof(Token::node));
+		   memcpy(&orangePac->assignedIp,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node),sizeof(Token::assignedIp));
+		   memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));
            return orangePac;
 		break;
 		 case static_cast<int>(ID::BCHUNK):
-         blueC=(BChunk*) calloc  (6,sizeof(BChunk));
-         memcpy(&blueC->id,&c,sizeof(blueC->id));
-         memcpy(&blueC->name[10],&c+sizeof(blueC->id),sizeof(blueC->name[10]));
-         memcpy(&blueC->totalChunks,&c+sizeof(blueC->id)+sizeof(blueC->name[10]),sizeof(blueC->totalChunks));
-         memcpy(&blueC->chunkNumber,&c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks),sizeof(blueC->chunkNumber));
-         memcpy(&blueC->data[10240],&c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks)+sizeof(blueC->chunkNumber),sizeof(blueC->data[10240]));
-         memcpy(&blueC->hops,&c+sizeof(blueC->id)+sizeof(blueC->name[10])+sizeof(blueC->totalChunks)+sizeof(blueC->chunkNumber)+sizeof(blueC->data[10240]),sizeof(blueC->hops));
+         blueC=(BChunk*) calloc  (1,sizeof(BChunk));
+         memcpy(&blueC->id,c,sizeof(Packet::id));
+         memcpy(&blueC->name[10],&c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueC->totalChunks,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BChunk::totalChunks));
+         memcpy(&blueC->chunkNumber,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks),sizeof(BChunk::chunkNumber));
+         memcpy(&blueC->data[10240],&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber),sizeof(BChunk::data[10240]));
+         memcpy(&blueC->hops,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber)+sizeof(BChunk::data[10240]),sizeof(BChunk::hops));
          return blueC;
         break;
     case static_cast<int>(ID::BHELLO):
-         blueH=(BHello*) calloc  (3,sizeof(BHello));
-         memcpy(&blueH->id,&c,sizeof(blueH->id));
-         memcpy(&blueH->name[10],&c+sizeof(blueH->id),sizeof(blueH->name[10]));
-         memcpy(&blueH->node,&c+sizeof(blueH->id)+sizeof(blueH->name[10]),sizeof(blueH->node));
+         blueH=(BHello*) calloc  (1,sizeof(BHello));
+         memcpy(&blueH->id,c,sizeof(Packet::id));
+         memcpy(&blueH->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueH->node,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BHello::node));
          return blueH;
     break;
     case static_cast<int>(ID::BEXIST):
-         blueE=(BExist*) calloc  (4,sizeof(BExist));
-         memcpy(&blueE->id,&c,sizeof(blueE->id));
-         memcpy(&blueE->name[10],&c+sizeof(blueE->id),sizeof(blueE->name[10]));
-         memcpy(&blueE->question,&c+sizeof(blueE->id)+sizeof(blueE->name[10]),sizeof(blueE->question));
-         memcpy(&blueE->exist,&c+sizeof(blueE->id)+sizeof(blueE->name[10])+sizeof(blueE->question),sizeof(blueE->exist));
+         blueE=(BExist*) calloc  (1,sizeof(BExist));
+         memcpy(&blueE->id,c,sizeof(Packet::id));
+         memcpy(&blueE->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueE->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BExist::question));
+         memcpy(&blueE->exist,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BExist::question),sizeof(BExist::exist));
          return blueE;
     break;
     case static_cast<int>(ID::BCOMPLETE):
-         blueCom=(BComplete*) calloc  (5,sizeof(BComplete));
-         memcpy(&blueCom->id,&c,sizeof(blueCom->id));
-         memcpy(&blueCom->name[10],&c+sizeof(blueCom->id),sizeof(blueCom->name[10]));
-         memcpy(&blueCom->totalChunks,&c+sizeof(blueCom->id)+sizeof(blueCom->name[10]),sizeof(blueCom->totalChunks));
-         memcpy(&blueCom->question,&c+sizeof(blueCom->id)+sizeof(blueCom->name[10])+sizeof(blueCom->totalChunks),sizeof(blueCom->question));
-         memcpy(&blueCom->chunkNumber,&c+sizeof(blueCom->id)+sizeof(blueCom->name[10])+sizeof(blueCom->totalChunks)+sizeof(blueCom->question),sizeof(blueCom->chunkNumber));
+         blueCom=(BComplete*) calloc  (1,sizeof(BComplete));
+         memcpy(&blueCom->id,c,sizeof(Packet::id));
+         memcpy(&blueCom->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueCom->totalChunks,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BComplete::totalChunks));
+         memcpy(&blueCom->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks),sizeof(BComplete::question));
+         memcpy(&blueCom->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks)+sizeof(BComplete::question),sizeof(BComplete::chunkNumber));
          return blueCom;
     break;
     case static_cast<int>(ID::BGET):
-         blueG=(BGet*) calloc  (6,sizeof(BGet));
-         memcpy(&blueG->id,&c,sizeof(blueG->id));
-         memcpy(&blueG->name[10],&c+sizeof(blueG->id),sizeof(blueG->name[10]));
-         memcpy(&blueG->totalChunks,&c+sizeof(blueG->id)+sizeof(blueG->name[10]),sizeof(blueG->totalChunks));
-         memcpy(&blueG->question,&c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks),sizeof(blueG->question));
-         memcpy(&blueG->chunkNumber,&c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks)+sizeof(blueG->question)+sizeof(blueG->question),sizeof(blueG->chunkNumber));
-         memcpy(&blueG->chunk[10240],&c+sizeof(blueG->id)+sizeof(blueG->name[10])+sizeof(blueG->totalChunks)+sizeof(blueG->question)+sizeof(blueG->question)+sizeof(blueG->chunkNumber),sizeof(blueG->chunk[10240]));
+         blueG=(BGet*) calloc  (1,sizeof(BGet));
+         memcpy(&blueG->id,c,sizeof(Packet::id));
+         memcpy(&blueG->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueG->totalChunks,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BGet::totalChunks));
+         memcpy(&blueG->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks),sizeof(BGet::question));
+         memcpy(&blueG->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::question),sizeof(BGet::chunkNumber));
+         memcpy(&blueG->chunk[10240],c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::question)+sizeof(BGet::chunkNumber),sizeof(BGet::chunk[10240]));
          return blueG;
     break;
     case static_cast<int>(ID::BLOCALIZE):
-         blueL=(BLocalize*) calloc  (6,sizeof(BLocalize));
-         memcpy(&blueL->id,&c,sizeof(blueL->id));
-         memcpy(&blueL->name[10],&c+sizeof(blueL->id),sizeof(blueL->name[10]));
-         memcpy(&blueL->question,&c+sizeof(blueL->id)+sizeof(blueL->name[10]),sizeof(blueL->question));
-         memcpy(&blueL->ip,&c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question),sizeof(blueL->ip));
-         memcpy(&blueL->port,&c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question)+sizeof(blueL->ip),sizeof(blueL->port));
-         memcpy(&blueL->chunkNumber,c+sizeof(blueL->id)+sizeof(blueL->name[10])+sizeof(blueL->question)+sizeof(blueL->ip)+sizeof(blueL->port),sizeof(blueL->chunkNumber));
+         blueL=(BLocalize*) calloc  (1,sizeof(BLocalize));
+         memcpy(&blueL->id,c,sizeof(Packet::id));
+         memcpy(&blueL->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
+         memcpy(&blueL->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BLocalize::question));
+         memcpy(&blueL->ip,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question),sizeof(BLocalize::ip));
+         memcpy(&blueL->port,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip),sizeof(BLocalize::port));
+         memcpy(&blueL->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip)+sizeof(BLocalize::port),sizeof(BLocalize::chunkNumber));
          return blueL;
     break;
     case static_cast<int>(ID::BDELETE):
-         blueD=(BDelete*) calloc  (2,sizeof(BDelete));
-         memcpy(&blueD->id,&c,sizeof(blueD->id));
-         memcpy(&blueD->name[10],&c+sizeof(blueD->id),sizeof(blueD->name[10]));
+         blueD=(BDelete*) calloc  (1,sizeof(BDelete));
+         memcpy(&blueD->id,c,sizeof(Packet::id));
+         memcpy(&blueD->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
          return blueD;
     break;
     case static_cast<int>(ID::ASSIGNMENT):
-         blueOrA=(Assignment*) calloc  (5,sizeof(Assignment));
-         memcpy(&blueOrA->id,&c,sizeof(blueOrA->id));
-         memcpy(&blueOrA->nodeID,&c+sizeof(blueOrA->id),sizeof(blueOrA->nodeID));
-         memcpy(&blueOrA->totalNeighbors,&c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID),sizeof(blueOrA->totalNeighbors));
-         memcpy(&blueOrA->ip,&c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID)+sizeof(blueOrA->totalNeighbors),sizeof(blueOrA->ip));
-         memcpy(&blueOrA->port,&c+sizeof(blueOrA->id)+sizeof(blueOrA->nodeID)+sizeof(blueOrA->totalNeighbors)+sizeof(blueOrA->ip),sizeof(blueOrA->port));
+         blueOrA=(Assignment*) calloc  (1,sizeof(Assignment));
+         memcpy(&blueOrA->id,c,sizeof(Packet::id));
+         memcpy(&blueOrA->nodeID,c+sizeof(Packet::id),sizeof(Assignment::nodeID));
+         memcpy(&blueOrA->totalNeighbors,c+sizeof(Packet::id)+sizeof(Assignment::nodeID),sizeof(Assignment::totalNeighbors));
+         memcpy(&blueOrA->ip,c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors),sizeof(Assignment::ip));
+         memcpy(&blueOrA->port,c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors)+sizeof(Assignment::ip),sizeof(Assignment::port));
          return blueOrA;
     break;
     case static_cast<int>(ID::CONNECT):
          blueOrC=(Connect*) calloc  (1,sizeof(Connect));
-         memcpy(&blueOrC->id,&c,sizeof(blueOrC->id));
+         memcpy(&blueOrC->id,c,sizeof(Packet::id));
          return blueOrC;
     break;
     case static_cast<int>(ID::GO):
          blueOrG=(Go*) calloc  (1,sizeof(Go));
-         memcpy(&blueOrG->id,&c,sizeof(blueOrG->id));
+         memcpy(&blueOrG->id,c,sizeof(Packet::id));
          return blueOrG;
     break;
     case static_cast<int>(ID::GCHUNK):
-         greenC=(GChunk*) calloc  (4,sizeof(GChunk));
-         memcpy(&greenC->id,&c,sizeof(greenC->id));
-         memcpy(&greenC->name[10],c+sizeof(greenC->id),sizeof(greenC->name[10]));
-         memcpy(&greenC->totalChunks,&c+sizeof(greenC->id)+sizeof(greenC->name[10]),sizeof(greenC->totalChunks));
-         memcpy(&greenC->data[10240],&c+sizeof(greenC->id)+sizeof(greenC->name[10])+sizeof(greenC->totalChunks),sizeof(greenC->data[10240]));
+         greenC=(GChunk*) calloc  (1,sizeof(GChunk));
+         memcpy(&greenC->id,c,sizeof(Packet::id));
+         memcpy(&greenC->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
+         memcpy(&greenC->totalChunks,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GChunk::totalChunks));
+         memcpy(&greenC->data[10240],c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GChunk::totalChunks),sizeof(GChunk::data[10240]));
          return greenC;
     break;
     case static_cast<int>(ID::GEXIST):
-         greenE=(GExist*) calloc  (3,sizeof(GExist));
-         memcpy(&greenE->id,&c,sizeof(greenE->id));
-         memcpy(&greenE->name[10],&c+sizeof(greenE->id),sizeof(greenE->name[10]));
-         memcpy(&greenE->exist,&c+sizeof(greenE->id)+sizeof(greenE->name[10]),sizeof(greenE->exist));
+         greenE=(GExist*) calloc  (1,sizeof(GExist));
+         memcpy(&greenE->id,c,sizeof(Packet::id));
+         memcpy(&greenE->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
+         memcpy(&greenE->exist,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GExist::exist));
          return greenE;
     break;
     case static_cast<int>(ID::GCOMPLETE):
-         greenCom=(GComplete*) calloc  (3,sizeof(GComplete));
-         memcpy(&greenCom->id,&c,sizeof(greenCom->id));
-         memcpy(&greenCom->name[10],&c+sizeof(greenCom->id),sizeof(greenCom->name[10]));
-         memcpy(&greenCom->complete,&c+sizeof(greenCom->id)+sizeof(greenCom->name[10]),sizeof(greenCom->complete));
+         greenCom=(GComplete*) calloc  (1,sizeof(GComplete));
+         memcpy(&greenCom->id,c,sizeof(Packet::id));
+         memcpy(&greenCom->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
+         memcpy(&greenCom->complete,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GComplete::complete));
          return greenCom;
     break;
     case static_cast<int>(ID::GDELETE):
-         greenD=(GDelete*) calloc  (2,sizeof(GDelete));
-         memcpy(&greenD->id,&c,sizeof(greenD->id));
-         memcpy(&greenD->name[10],&c+sizeof(greenD->id),sizeof(greenD->name[10]));
+         greenD=(GDelete*) calloc  (1,sizeof(GDelete));
+         memcpy(&greenD->id,c,sizeof(Packet::id));
+         memcpy(&greenD->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
          return greenD;
     break;
     case static_cast<int>(ID::GLOCALIZE):
-         greenL=(GLocalize*) calloc  (6,sizeof(GLocalize));
-         memcpy(&greenL->id,&c,sizeof(greenL->id));
-         memcpy(&greenL->name[10],&c+sizeof(greenL->id),sizeof(greenL->name[10]));
-         memcpy(&greenL->question,&c+sizeof(greenL->id)+sizeof(greenL->name[10]),sizeof(greenL->question));
-         memcpy(&greenL->ip,&c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question),sizeof(greenL->ip));
-         memcpy(&greenL->port,&c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question)+sizeof(greenL->ip),sizeof(greenL->port));
-         memcpy(&greenL->chunkNumber,&c+sizeof(greenL->id)+sizeof(greenL->name[10])+sizeof(greenL->question)+sizeof(greenL->ip)+sizeof(greenL->port),sizeof(greenL->chunkNumber));
+         greenL=(GLocalize*) calloc  (1,sizeof(GLocalize));
+         memcpy(&greenL->id,c,sizeof(Packet::id));
+         memcpy(&greenL->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
+         memcpy(&greenL->question,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GLocalize::question));
+         memcpy(&greenL->ip,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question),sizeof(GLocalize::ip));
+         memcpy(&greenL->port,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip),sizeof(GLocalize::port));
+         memcpy(&greenL->chunkNumber,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip)+sizeof(GLocalize::port),sizeof(GLocalize::chunkNumber));
          return greenL;
     break;
     case static_cast<int>(ID::GKILL):
-         greenK=(GKill*) calloc  (3,sizeof(GKill));
-         memcpy(&greenK->id,&c,sizeof(greenK->id));
-         memcpy(&greenK->name[10],&c+sizeof(greenK->id),sizeof(greenK->name[10]));
-         memcpy(&greenK->node,&c+sizeof(greenK->id)+sizeof(greenK->name[10]),sizeof(greenK->node));
+         greenK=(GKill*) calloc  (1,sizeof(GKill));
+         memcpy(&greenK->id,c,sizeof(Packet::id));
+         memcpy(&greenK->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
+         memcpy(&greenK->node,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GKill::node));
          return greenK;
     break;
 
