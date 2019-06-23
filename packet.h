@@ -1,23 +1,15 @@
 #ifndef PACKET_H
 #define PACKET_H
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <stdio.h>
-
-#define CHUNK_SIZE 10240 //10KB
-#define NAME_SIZE 10
-
-/// Struct with enumerations that identify the packets by their ID field.
 typedef struct ID
 {
 	//ID space for orange packets: [0, 19]
 	enum ORANGE
 	{
 		INITIAL_TOKEN,
-		TOKEN
+		TOKEN_FULL_AND_REQUEST,
+		TOKEN_FULL_AND_COMPLETE,
+		TOKEN_EMPTY
 	};
 	
 	//ID space for blue packets: [20, 39]
