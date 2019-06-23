@@ -8,8 +8,6 @@ struct OrangePacket : Packet
 {
 	///Orange token always carries the source node ip.
 	unsigned int ip;
-	///Accepted/rejected.
-	bool boolean;
 };
 
 ///Structure to define the token, has nothing more than its abstract base class.
@@ -20,6 +18,7 @@ typedef struct InitialToken : OrangePacket
 
 typedef struct Token : OrangePacket
 {	
+	bool boolean;
 	///Field to represent a graph node.
 	unsigned short int node;
 	///IP address of the blue node to be assigned.

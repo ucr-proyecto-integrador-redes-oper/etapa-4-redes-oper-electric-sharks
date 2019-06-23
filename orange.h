@@ -26,10 +26,10 @@ class Orange{
         
         unsigned int* ipBuffer;
 
-        queue<Packet> privateInBuffer;
-        queue<Packet> privateOutBuffer;
-        queue<Packet> sharedInBuffer;
-        queue<Packet> sharedOutBuffer;
+        queue<Packet*> privateInBuffer;
+        queue<Packet*> privateOutBuffer;
+        queue<Packet*> sharedInBuffer;
+        queue<Packet*> sharedOutBuffer;
 
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
@@ -38,14 +38,14 @@ class Orange{
         sem_t OutBufferSem;
         
         ID packetsID;
-        
         Socket * orangeSocket;
         Socket * blueSocket;
+        Code coder;
 
-        void * reciver();
-        void * processer();
-        void * sender();
-        void beginContention();
+        void * receiver(Orange*);
+        void * processer(Orange*);
+        void * sender(Orange*);
+        void beginContention(Orange*);
         int validateIP(char* ip);
         
 
@@ -61,7 +61,7 @@ class Orange{
         ~Orange();
         Orange(int, unsigned short int, unsigned short int, int);
         void requestIP();
-        static void * reciverHelper(void *context);
+        static void * receiverHelper(void *context);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
         void init();

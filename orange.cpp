@@ -1,10 +1,12 @@
 #include "orange.h"
 
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <pthread.h>
 #include <ifaddrs.h>
 #include <netdb.h>
+#include <thread>
 
 using namespace std;
 
@@ -16,6 +18,8 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
+	pthread_mutex_init(&this->semIn, nullptr);
+	pthread_mutex_init(&this->semOut, nullptr);
 	this->orangeSocket = new Socket(Socket::Protocol::UDP);
 	this->blueSocket = new Socket(Socket::Protocol::UDP);
 }
@@ -74,101 +78,117 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
 }
 
 ///Funcion para el thread que recibe paquetes del socket y los pone en la cola compartida para el siguiente thread
-void *Orange::reciver(){
+void *Orange::receiver(Orange* orange){
     /*Crea el socket */
     char* buffer = new char[BUF_SIZE];
     memset(buffer, 0, BUF_SIZE);
     Packet* currentPacket;
-    Code coder;
     int status = 0;
     
     
     while(true){
         /*Lee el socket */
-        this->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT);
+        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT);
         
+        /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer);
 		
-		this->privateInBuffer.push(*currentPacket);
-		
-		status = pthread_mutex_trylock(&semIn);
-		if(status == EBUSY)
-			continue;
-		while(!this->privateInBuffer.empty()){
-			this->sharedInBuffer.push(privateInBuffer.front());
-			this->privateInBuffer.pop();
-		}
-		pthread_mutex_unlock(&semIn);
-		
-		sem_post(&this->InBufferSem);
-		
-		free(currentPacket);
+		/*Mete el paquete a la cola privada*/
+		orange->privateInBuffer.push(currentPacket);
 		
 		memset(buffer, 0, BUF_SIZE);
+		
+		/*Si la cola compartida está siendo usada, sigue escuchando el socket, sino mete paquetes a la cola compartida*/
+		status = pthread_mutex_trylock(&orange->semIn);
+		
+		if(status == EBUSY)
+			continue;
+			
+		while(!orange->privateInBuffer.empty()){
+			orange->sharedInBuffer.push(orange->privateInBuffer.front());
+			orange->privateInBuffer.pop();
+		}
+		
+		pthread_mutex_unlock(&orange->semIn);
+		
+		/*Avisa al processer que hay más paquetes para procesar con un signal*/
+		sem_post(&orange->InBufferSem);
+		
+		//free(currentPacket);
+		
     }
 }
 
-void *Orange::reciverHelper(void *context){
-    return ((Orange *)context)->reciver();
+void *Orange::receiverHelper(void *context){
+    return ((Orange *)context)->receiver((Orange*) context);
 }
 
 ///Funcion para el thread que toma un paquete de la cola compartida, lo procesa y pone mensajes en la cola compartida para el siguiente thread
-void *Orange::processer(){
+void *Orange::processer(Orange* orange){
+	beginContention(orange);
+	
     while(true){
         /*Lee la cola compartida, saca el paquete del frente y lo procesa */
-        sem_wait(&InBufferSem);	//Espera a que haya algo en la cola para procesar
-        pthread_mutex_lock(&semIn);
-        if(!sharedInBuffer.empty()){
-            Packet packet = sharedInBuffer.front();
-            sharedInBuffer.pop();
-
-            switch(packet.id){
-                /*Hace las diferentes acciones con los paquetes */
-            }
-
-        }
-        pthread_mutex_unlock(&semIn);
         
-        Packet packetOut; //Paquete que se crea dentro del switch dependiendo de lo que pida el paquete entrante. Vacio mientras se hacen pruebas
+        sem_wait(&orange->InBufferSem);	//Espera a que haya algo en la cola para procesar
+        pthread_mutex_lock(&orange->semIn);
+        
+        Packet* packet = orange->sharedInBuffer.front();
+        orange->sharedInBuffer.pop();
+        
+        pthread_mutex_unlock(&orange->semIn);
+
+		/*Hace las diferentes acciones con los paquetes */
+		switch(packet->id){
+			case ID::INITIAL_TOKEN:
+				char buffer[IP_LEN];
+				orange->orangeSocket->decode_ip((static_cast<InitialToken*>(packet))->ip, buffer);
+				cout << "Node says: " << buffer << endl;
+			break;
+		}
+        
+        /*Packet packetOut; //Paquete que se crea dentro del switch dependiendo de lo que pida el paquete entrante. Vacio mientras se hacen pruebas
         pthread_mutex_lock(&semOut);
         sharedOutBuffer.push(packetOut);
         pthread_mutex_unlock(&semOut);
         sem_post(&this->OutBufferSem);	//le avisa al sender que hay algo para enviar
+        */
 
     }
 }
 
 void *Orange::processerHelper(void *context){
-    return ((Orange *)context)->sender();
+    return ((Orange *)context)->processer((Orange*) context);
 }
 
 ///Funcion que toma paquetes de la cola compartida y los envia por el socket
-void *Orange::sender(){
-    char* rowPacket = new char[BUF_SIZE];
-    memset(rowPacket, 0, BUF_SIZE);
+void *Orange::sender(Orange* orange){
+    char* rawPacket = nullptr;
+    char testBuf[IP_LEN];
+    
     while(true){
-        if(!privateOutBuffer.empty()){
-			Packet toSend = privateOutBuffer.front();
-			privateOutBuffer.pop();
-			memcpy(rowPacket, (char*)&toSend, sizeof(toSend));
-			this->orangeSocket->Sendto(rowPacket, sizeof(toSend), this->rightIP, ORANGE_PORT);
-			memset(rowPacket, 0, BUF_SIZE);
+        if(!orange->privateOutBuffer.empty()){
+			Packet* toSend = orange->privateOutBuffer.front();
+			orange->privateOutBuffer.pop();
+			rawPacket = coder.encode(toSend);
+			assert(rawPacket);
+			orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
             /*Lo envia con el socket */
         }
         else{                                       //Si la cola privada está vacía, busca en la cola compartida
-			sem_wait(&this->OutBufferSem);
-            pthread_mutex_lock(&semOut);
-            if(!sharedOutBuffer.empty()){
-                privateOutBuffer.push(sharedOutBuffer.front());
-                sharedOutBuffer.pop();
+			sem_wait(&orange->OutBufferSem);
+            pthread_mutex_lock(&orange->semOut);
+            if(!orange->sharedOutBuffer.empty()){
+                orange->privateOutBuffer.push(orange->sharedOutBuffer.front());
+                orange->sharedOutBuffer.pop();
             }
-            pthread_mutex_unlock(&semOut);
+            pthread_mutex_unlock(&orange->semOut);
         }
     }
 }
 
 void *Orange::senderHelper(void *context){
-    return ((Orange *)context)->sender();
+    return ((Orange *)context)->sender((Orange*) context);
 }
 
 void Orange::getHostIP()
@@ -205,7 +225,7 @@ void Orange::getHostIP()
 				/*Si la direccion es valida y no es loopback, se asigna al nodo naranja*/
 				if(validateIP(host) && strcmp("127.0.0.1", host)){
 					memcpy(this->myIP, host, IP_LEN);
-					cout << "Dirección IP: " << host << ", interfaz: " << ifa->ifa_name << endl;
+					cout << "Dirección IP: " << this->myIP << ", interfaz: " << ifa->ifa_name << endl;
 					break;
 				}
 			}
@@ -218,35 +238,38 @@ void Orange::getHostIP()
 	}
 }
 
-void Orange::beginContention()
+void Orange::beginContention(Orange* orange)
 {
-	InitialToken p;
-	p.id = this->packetsID.ORANGE::INITIAL_TOKEN;
-	//p.ip = encode_ip(this->myIP);
+	InitialToken* p = (InitialToken*) calloc(1, sizeof(InitialToken));
+	p->id = ID::INITIAL_TOKEN;
+	p->ip = orange->orangeSocket->encode_ip(orange->myIP);
+	
+	pthread_mutex_lock(&orange->semOut);
+	orange->privateOutBuffer.push(p);
+	pthread_mutex_unlock(&orange->semOut);
+	sem_post(&orange->OutBufferSem);
 }
-
 
 int main(int argc, char* argv[]){
     int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
-    get_args(id, orangeInPort, orangeOutPort, argc, argv);
+    //get_args(id, orangeInPort, orangeOutPort, argc, argv);
     Orange orangeNode(id, orangeInPort, orangeOutPort, 2);
     
-    pthread_t reciver;
+    pthread_t receiver;
     pthread_t processer;
     pthread_t sender;
-    
-   // orangeNode.requestIP();
-	Orange node;
-	node.getHostIP();
-/*
-    int resReciver = pthread_create(&reciver, NULL, &Orange::reciverHelper, &orangeNode);
+	
+    orangeNode.requestIP();
+	orangeNode.getHostIP();
+
     int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
+    int resReceiver = pthread_create(&receiver, NULL, &Orange::receiverHelper, &orangeNode);
     int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
 	
-	/*Nunca hacen exit
-	pthread_join(reciver, (void**) nullptr);
+	/*Nunca hacen exit*/
+	pthread_join(receiver, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
-	pthread_join(sender, (void**) nullptr);*/
+	pthread_join(sender, (void**) nullptr);
 }

@@ -1,5 +1,8 @@
 #include "encoder.h"
 
+#include <iostream>
+using namespace std;
+
 Code::Code()
 {
 }
@@ -32,13 +35,12 @@ char* Code::encode(Packet *pac){
     GLocalize *greenL;
     GKill *greenK;
     //*****************************
-
+	
     switch(id){
     case static_cast<int>(ID::INITIAL_TOKEN):
-         c = new char[7];
-         memcpy(&c,&orangeI->id,sizeof(orangeI->id));
-         memcpy(&c+sizeof(orangeI->id),&orangeI->ip,sizeof(orangeI->ip));
-         memcpy(c+sizeof(orangeI->id)+sizeof(orangeI->ip),&orangeI->boolean,sizeof(orangeI->boolean));
+         c = new char[6]();
+         memcpy(c, &pac->id,sizeof(Packet::id));
+         memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
         break;
     case static_cast<int>(ID::TOKEN):
          c = new char[15];
@@ -160,7 +162,6 @@ char* Code::encode(Packet *pac){
     break;
 
     }
-
 	return c;
 }
 
@@ -185,18 +186,17 @@ Packet* Code::decode(char *c){
     GLocalize *greenL;
     GKill *greenK;
     //*****************************
-	int id;
-	memcpy(&id,&c,sizeof(orangeI->id));
+	int id = 0;
+	memcpy(&id, c,sizeof(Packet::id));
 	switch(id){
 		case static_cast<int>(ID::INITIAL_TOKEN):
-		   orangeI=(InitialToken*) calloc  (3,sizeof(InitialToken*));//********************************************************
-		   memcpy(&orangeI->id,&c,sizeof(orangeI->id));
-		   memcpy(&orangeI->ip,&c+sizeof(orangeI->id),sizeof(orangeI->ip));
-		   memcpy(&orangeI->boolean,&c+sizeof(orangeI->id)+sizeof(orangeI->ip),sizeof(orangeI->boolean));
+		   orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
+		   memcpy(&orangeI->id, c,sizeof(Packet::id));
+		   memcpy(&orangeI->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
 		   return orangeI;
 		break;
 		case static_cast<int>(ID::TOKEN):
-                   orangePac=(Token*) calloc  (6,sizeof(Token));
+           orangePac=(Token*) calloc  (6,sizeof(Token));
 		   memcpy(&orangePac->id,&c,sizeof(orangePac->id));
 		   memcpy(&orangePac->ip,&c+sizeof(orangePac->id),sizeof(orangePac->ip));
 		   memcpy(&orangePac->node,&c+sizeof(orangePac->id)+sizeof(orangePac->ip),sizeof(orangePac->boolean));
