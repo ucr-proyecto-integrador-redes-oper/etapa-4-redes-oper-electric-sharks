@@ -18,7 +18,6 @@ typedef struct InitialToken : OrangePacket
 
 typedef struct Token : OrangePacket
 {	
-	///Accepted/rejected.
 	bool boolean;
 	///Field to represent a graph node.
 	unsigned short int node;

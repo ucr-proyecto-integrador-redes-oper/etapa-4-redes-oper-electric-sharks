@@ -51,7 +51,7 @@ typedef struct BComplete : BluePacket
 }BComplete;
 
 ///Get packet. Could be either a question or an answer.
-typedef struct BGet : Packet
+typedef struct BGet : BluePacket
 {
 	///Total number of chunks that make up a file.
 	unsigned int totalChunks;

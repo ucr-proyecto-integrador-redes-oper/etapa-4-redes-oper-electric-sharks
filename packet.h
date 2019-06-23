@@ -3,10 +3,10 @@
 
 typedef struct ID
 {
-	//ID space for orange packets: [0, 9]
+	//ID space for orange packets: [0, 19]
 	enum ORANGE
 	{
-		TOKEN_INITIAL,
+		INITIAL_TOKEN,
 		TOKEN_FULL_AND_REQUEST,
 		TOKEN_FULL_AND_COMPLETE,
 		TOKEN_EMPTY
@@ -44,17 +44,7 @@ typedef struct ID
 	};
 } ID;
 
-///Function that takes an ipv4 address in binary notation and returns it in dots notation.
-char* make_ip(unsigned int ip, char* str)
-{
-    unsigned char bytes[4];
-    bytes[0] = ip & 0xFF;
-    bytes[1] = (ip >> 8) & 0xFF;
-    bytes[2] = (ip >> 16) & 0xFF;
-    bytes[3] = (ip >> 24) & 0xFF;   
-    sprintf(str, "%d.%d.%d.%d", bytes[3], bytes[2], bytes[1], bytes[0]);        
-    return str;
-}
+
 
 ///Base struct Packet. All packets share the id field.
 struct Packet

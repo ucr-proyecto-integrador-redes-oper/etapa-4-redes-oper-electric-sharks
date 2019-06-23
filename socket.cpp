@@ -1,7 +1,6 @@
 #include "socket.h"
 #include "error_handler.h"
 
-
 #include <cstdint>
 #include <iostream>
 
@@ -140,6 +139,24 @@ int Socket::Recvfrom(char * message, int len, struct sockaddr_in * client_addr){
 	receiver_addr.sin_port = htons(udp_port);
 	
 	bind(sfd, (const struct sockaddr *) &receiver_addr,  sizeof(receiver_addr));
+	
+	int received;
+	unsigned int struct_size = sizeof(struct sockaddr_in);
+	received = recvfrom(sfd, (void *) message, len, 0, (struct sockaddr *) client_addr, &struct_size);
+	return received;
+}
+
+int Socket::Recvfrom(char * message, int len, unsigned short port, struct sockaddr_in* client_addr){
+	struct sockaddr_in sender_addr;
+	struct sockaddr_in receiver_addr;
+	if(!client_addr)
+		client_addr = &receiver_addr;
+	
+	receiver_addr.sin_family = AF_INET;
+	receiver_addr.sin_addr.s_addr = INADDR_ANY;
+	receiver_addr.sin_port = htons(port);
+	
+	bind(sfd, (const struct sockaddr *)&receiver_addr,  sizeof(receiver_addr));
 	
 	int received;
 	unsigned int struct_size = sizeof(struct sockaddr_in);
