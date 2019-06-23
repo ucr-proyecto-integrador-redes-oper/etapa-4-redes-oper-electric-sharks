@@ -1,7 +1,6 @@
 #include "secudp.h"
 #include "socket.h"
 #include "semaphore.h"
-//#include "Semaphore.h"
 
 #include <unordered_map>
 #include <queue>
@@ -77,20 +76,9 @@ void reUDP::receiver(){
 		} else {
 			if(sent.count(receiver->sn)){
 				sem_map.wait();
-				sent[receiver->sn]->received = true;
-
-				if(sent[receiver->sn]->direc)
-					delete sent[receiver->sn]->direc;
-				sent[receiver->sn]->direc = nullptr;
-
-				if(sent[receiver->sn]->frame)
-					delete sent[receiver->sn]->frame;
-				sent[receiver->sn]->frame = nullptr;
-
-				if(sent[receiver->sn])
-					delete sent[receiver->sn];
-				sent[receiver->sn] = nullptr;
-
+				delete sent[receiver->sn]->direc;
+				delete sent[receiver->sn]->frame;
+				delete sent[receiver->sn];
 				sent.erase(receiver->sn);
 				sem_map.signal();
 			}
@@ -103,19 +91,10 @@ void reUDP::sender(){
 		std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME));
 		sem_map.wait();
 		for(auto it = sent.begin(); it != sent.end(); ++it){
-			if(it->second->received){
-				//delete it->second->direc;
-				//delete it->second->frame;
-				//delete it->second;
-				//sent.erase(it);
-				//break;
-			} else {
-				//std::cout << it->second->frame->payload << std::endl;
-				sock.Sendto((const char *) it->second->frame, 
-							sizeof(struct data_frame), 
-							it->second->direc->addr, 
-							it->second->direc->port);
-			}
+			sock.Sendto((const char *) it->second->frame, 
+						sizeof(struct data_frame), 
+						it->second->direc->addr, 
+						it->second->direc->port);
 		}
 		sem_map.signal();
 	}

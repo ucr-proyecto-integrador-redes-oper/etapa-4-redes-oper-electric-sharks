@@ -11,7 +11,6 @@
 
 #include "socket.h"
 #include "semaphore.h"
-//#include "Semaphore.h"
 
 #define PAYLOAD_SIZE 1024
 #define WAIT_TIME 50
@@ -45,11 +44,7 @@ class reUDP{
 		void receiver();
 		void sender();
 	public:
-		#ifdef SEMAPHORE_H
-		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX), sem_recv(KEY_CRIS, 0), sem_map(KEY_ASCH, 1), sem_queue(KEY_ROY, 1) {}
-		#else
 		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX), sem_map(1), sem_queue(1) {}
-		#endif
 		~reUDP();
 		void run();
 		void Sendto(const char *, const char *, uint16_t);

@@ -13,6 +13,11 @@
 
 using namespace std;
 
+struct package{
+	unsigned int ln;
+	char message[MSG_LEN];
+};
+
 int main(int argc, char* argv[])
 {
 	if(argc < 3)
@@ -29,10 +34,12 @@ int main(int argc, char* argv[])
 	char message[MSG_LEN];
 
 	std::ifstream fs(argv[3]);
-	
+	struct package mypkg;
+	mypkg.ln = 0;
 	while(fs){
-		fs.getline(message, MSG_LEN);
-		sock->Sendto(message, argv[1], port);
+		fs.getline(mypkg.message, MSG_LEN);
+		sock->Sendto((const char *) &mypkg, argv[1], port);
+		mypkg.ln += 1;
 	}
 	while(true){
 		std::this_thread::sleep_for(std::chrono::seconds(100));

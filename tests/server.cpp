@@ -10,6 +10,11 @@
 
 using namespace std;
 
+struct package{
+	unsigned int ln;
+	char message[MSG_LEN];
+};
+
 int main(int argc, char* argv[])
 {
 
@@ -21,11 +26,11 @@ int main(int argc, char* argv[])
 	reUDP* sock = new reUDP(MY_PORT);
 	sock->run();
 
-	int run = 0;
+	struct package mypkg;
 	while(true){
-		sock->Recvfrom(message);
-		std::cout << run++ << ": " << message << std::endl;
-		memset(message, '\0', MSG_LEN);
+		sock->Recvfrom((char *) &mypkg);
+		std::cout << mypkg.ln << ": " << mypkg.message << std::endl;
+		memset(mypkg.message, '\0', MSG_LEN);
 	}
 
 	return 0;
