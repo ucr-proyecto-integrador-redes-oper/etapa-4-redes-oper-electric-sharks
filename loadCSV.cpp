@@ -2,6 +2,10 @@
 #include <string>
 #include <unordered_map>
 #include <list> 
+#include <iostream>
+
+using namespace std;
+
 void parseCSV(std::string str, std::unordered_map<int, std::list<int>> * mmap){
 	int s = 0;
 	int f = 0;
@@ -24,6 +28,10 @@ void parseCSV(std::string str, std::unordered_map<int, std::list<int>> * mmap){
 void loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mmap){
 	std::string str;
 	std::fstream fs(csv_file);
+	if(!fs){
+		cout << "Error! No se pudo cargar el archivo " << csv_file << endl;
+		return; 
+	}
 	int i = 0;
 	while(fs){
 		fs >> str;

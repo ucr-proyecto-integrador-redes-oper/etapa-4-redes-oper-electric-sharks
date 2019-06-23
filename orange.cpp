@@ -1,4 +1,5 @@
 #include "orange.h"
+#include "loadCSV.h"
 
 #include <cassert>
 #include <iostream>
@@ -10,18 +11,16 @@
 
 using namespace std;
 
-Orange::Orange(){
-}
-
-Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges)
+Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges, string csv_file)
 : id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), ipBuffer(nullptr)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->semIn, nullptr);
 	pthread_mutex_init(&this->semOut, nullptr);
-	this->orangeSocket = new Socket(Socket::Protocol::UDP);
-	this->blueSocket = new Socket(Socket::Protocol::UDP);
+	this->orangeSocket = new Socket(Protocol::UDP);
+	this->blueSocket = new Socket(Protocol::UDP);
+	loadCSV(csv_file, &this->blue_graph);
 }
 
 Orange::~Orange()
@@ -250,6 +249,16 @@ void Orange::beginContention(Orange* orange)
 	sem_post(&orange->OutBufferSem);
 }
 
+void Orange::print_graph(){
+	for(auto it = blue_graph.begin(); it != blue_graph.end(); ++it){
+		cout << it->first << ": ";
+		for(auto lit = it->second.begin(); lit != it->second.end(); ++lit){
+			cout << *lit << " ";
+		}
+		cout << endl;
+	}
+}
+
 int main(int argc, char* argv[]){
     int id;
     unsigned short int orangeInPort;
@@ -260,12 +269,15 @@ int main(int argc, char* argv[]){
     pthread_t receiver;
     pthread_t processer;
     pthread_t sender;
+
+	int resReceiver = pthread_create(&receiver, NULL, &Orange::receiverHelper, &orangeNode);
+	
+	orangeNode.print_graph();
 	
     orangeNode.requestIP();
 	orangeNode.getHostIP();
 
     int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
-    int resReceiver = pthread_create(&receiver, NULL, &Orange::receiverHelper, &orangeNode);
     int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
 	
 	/*Nunca hacen exit*/

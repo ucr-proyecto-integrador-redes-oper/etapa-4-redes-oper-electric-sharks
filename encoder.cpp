@@ -42,7 +42,7 @@ char* Code::encode(Packet *pac){
          memcpy(c, &pac->id,sizeof(Packet::id));
          memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
         break;
-    case static_cast<int>(ID::TOKEN):
+    case static_cast<int>(ID::TOKEN_EMPTY):
          c = new char[15];
          memcpy(c,&pac->id,sizeof(pac->id));
          memcpy(c+sizeof(orangePac->id),&orangePac->ip,sizeof(orangePac->ip));
@@ -195,7 +195,7 @@ Packet* Code::decode(char *c){
 		   memcpy(&orangeI->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
 		   return orangeI;
 		break;
-		case static_cast<int>(ID::TOKEN):
+		case static_cast<int>(ID::TOKEN_EMPTY):
            orangePac=(Token*) calloc  (6,sizeof(Token));
 		   memcpy(&orangePac->id,&c,sizeof(orangePac->id));
 		   memcpy(&orangePac->ip,&c+sizeof(orangePac->id),sizeof(orangePac->ip));

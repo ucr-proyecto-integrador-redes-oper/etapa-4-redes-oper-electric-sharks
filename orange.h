@@ -9,6 +9,8 @@
 
 #include <pthread.h>
 #include <queue>
+#include <list>
+#include <unordered_map>
 #include <semaphore.h>
 
 #define IP_LEN 16
@@ -30,6 +32,8 @@ class Orange{
         queue<Packet*> privateOutBuffer;
         queue<Packet*> sharedInBuffer;
         queue<Packet*> sharedOutBuffer;
+        
+        unordered_map<int, list<int>> blue_graph;
 
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
@@ -57,15 +61,15 @@ class Orange{
         char myIP[IP_LEN];
         int id;
 
-        Orange();
+        Orange(int, unsigned short int, unsigned short int, int = 6, string = "Grafo_Referencia.csv");
         ~Orange();
-        Orange(int, unsigned short int, unsigned short int, int);
         void requestIP();
         static void * receiverHelper(void *context);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
         void init();
         void getHostIP();
+        void print_graph();
 };
 
 #endif

@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 
+#define DEF_PORT 6060
+
 
 enum Protocol{
 	TCP,
