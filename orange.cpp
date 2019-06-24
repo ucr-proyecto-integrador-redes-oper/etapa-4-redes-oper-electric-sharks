@@ -158,7 +158,7 @@ void *Orange::processer(Orange* orange){
 				orange->processInitialToken(currentEntry);
 			break;
 			
-			case ID::INITIAL_TOKEN:
+			case ID::TOKEN_EMPTY:
 				assert(false);
 		}
     }
