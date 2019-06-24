@@ -12,6 +12,7 @@
 #include <list>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 #include <semaphore.h>
 
 #define IP_LEN 16
@@ -19,7 +20,7 @@
 #define ORANGE_PORT 11000
 #define BLUE_PORT 12000
 #define NUM_INTERFACES 4
-#define NUM_ORANGES 3
+#define NUM_ORANGES 4
 
 using namespace std;
 
@@ -28,6 +29,7 @@ class Orange{
         unsigned short int bluePort;
         size_t numTotalOranges;
         bool tokenCreated;
+        bool tokenOccupied;	//bandera para saber si este nodo ocupó el token.
         
         vector<unsigned int> allNodesIP;
 
@@ -35,8 +37,12 @@ class Orange{
         queue<PacketEntry*> privateOutBuffer;
         queue<PacketEntry*> sharedInBuffer;
         queue<PacketEntry*> sharedOutBuffer;
+        queue<PacketEntry*> blueRequests;
         
         unordered_map<int, list<int>> blue_graph;
+        
+        //Contiene un nodo del grafo y su IP y puerto asociado, si existe.
+        unordered_map<unsigned short int, pair<unsigned int, unsigned short int>> blueMapping;
 
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
@@ -56,9 +62,11 @@ class Orange{
         int validateIP(char* ip);
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
-        void createToken(Orange* );
+        void createToken(Orange*);
         void putInSendQueue(Orange*, Packet*, int);
         void processInitialToken(PacketEntry*);
+        void initBlueMap();
+        unsigned short int findNextUnassigned(Orange*);
         
 
     public:

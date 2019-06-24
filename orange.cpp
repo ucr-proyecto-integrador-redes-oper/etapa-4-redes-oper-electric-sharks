@@ -23,6 +23,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	this->orangeSocket = new Socket(Protocol::UDP);
 	this->blueSocket = new Socket(Protocol::UDP);
 	loadCSV(csv_file, &this->blue_graph);
+	initBlueMap();
 	this->allNodesIP.resize(0);
 }
 
@@ -159,7 +160,45 @@ void *Orange::processer(Orange* orange){
 			break;
 			
 			case ID::TOKEN_EMPTY:
-				assert(false);
+				//assert(false);
+				Token* token = (Token*)currentEntry->packet;
+				if(token->boolean){	//si está ocupado
+					
+					//si fue el mismo quien lo ocupó, lo libera
+					if(orange->tokenOccupied){
+						orange->tokenOccupied = false;
+						token->boolean = false;
+						token->assignedIp = 0;
+						token->assignedPort = 0;
+					}else{
+					//sino, anota la asignacion en su tabla local
+						auto node = orange->blueMapping.find(token->node);
+		
+						if(node != orange->blueMapping.end())
+							orange->blueMapping[token->node] = make_pair(token->assignedIp, token->assignedPort);
+						else
+							assert(false); //no debe ocurrir;
+					}
+				}else{
+					//si el token está libre, y tiene asignaciones pendientes
+					if(!orange->blueRequests.empty()){
+						//asigna un azul a un nodo del grafo
+						unsigned short int newAssignment = orange->findNextUnassigned(orange);
+						if(newAssignment == -1){
+							error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
+						}
+						/*BlueRequest* blueRequest = orange->blueRequests.front(); //hay que crearlo, no existe
+						orange->blueRequests.pop();
+						token->node = newAssignment;
+						token->assignedIp = blueRequest->ip;
+						token->assignedPort = blueRequest->port;
+						token->boolean = true;
+						orange->tokenOccupied = true;*/
+					}
+					//sino, solo pasa el token al vecino derecho
+				}
+				cout << "pasando el token!" << endl;
+				orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
 		}
     }
 }
@@ -332,19 +371,17 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 	if(strcmp(buffer, this->myIP) != 0){
 		this->addToIPList(((InitialToken*)currentEntry->packet)->ip);
 		if(this->allNodesIP.size() == this->numTotalOranges - 1){
+			
 		/*Si la ip de este naranja es menor que la de todos sus vecinos, crea el token.*/
 			if(!this->tokenCreated && this->orangeSocket->encode_ip(this->myIP) < this->findMinIP()){
 				cout << "Gané!" << endl;
 				//crear token
 				this->createToken(this);
+				//TO-DO: poner un timer aquí, en 3 minutos, por si el token no llega de nuevo se vuelve a crear.
 			}
 		}
 		/*Si el paquete lo recibió por el lado izquierdo, lo reenvía al nodo derecho, y si no al izquierdo.*/
 		currentEntry->sendTo = (currentEntry->receivedFromLeft ? SEND_TO_RIGHT : SEND_TO_LEFT);
-		/*pthread_mutex_lock(&this->semOut);
-		this->sharedOutBuffer.push(currentEntry);
-		pthread_mutex_unlock(&this->semOut);
-		sem_post(&this->OutBufferSem);*/
 		this->putInSendQueue(this, currentEntry->packet, currentEntry->sendTo);
 		free(currentEntry);
 	}else{
@@ -352,6 +389,24 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 		free(currentEntry->packet);
 		free(currentEntry);
 	}
+}
+
+void Orange::initBlueMap()
+{
+	for(auto node : this->blue_graph){
+		cout << "node: " << node.first << endl;
+		this->blueMapping[(unsigned short) node.first] = make_pair(0, 0);
+	}
+}
+
+unsigned short int Orange::findNextUnassigned(Orange* orange)
+{
+	unsigned short int nextFree = -1;
+	for(auto node : orange->blueMapping)
+		if(node.second.first == 0 && node.second.second == 0)
+			nextFree = node.first;
+	
+	return nextFree;
 }
 
 unsigned long Orange::findMinIP()
