@@ -309,5 +309,6 @@ Packet* Code::decode(char *c){
     break;
 
     }
+    cout << "Invalid id: " << id << endl;
 	return nullptr;
 }

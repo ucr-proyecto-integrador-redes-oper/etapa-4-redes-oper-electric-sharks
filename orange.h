@@ -19,7 +19,7 @@
 #define ORANGE_PORT 11000
 #define BLUE_PORT 12000
 #define NUM_INTERFACES 4
-#define NUM_ORANGES 2
+#define NUM_ORANGES 3
 
 using namespace std;
 
@@ -52,12 +52,13 @@ class Orange{
         void * receiver(Orange*);
         void * processer(Orange*);
         void * sender(Orange*);
-        void beginContention(Orange*);
+        void beginContention();
         int validateIP(char* ip);
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
-        void createToken(Orange*);
+        void createToken(Orange* );
         void putInSendQueue(Orange*, Packet*, int);
+        void processInitialToken(PacketEntry*);
         
 
     public:
