@@ -11,8 +11,9 @@
 
 #include "socket.h"
 #include "semaphore.h"
+#include "packets.h"
 
-#define PAYLOAD_SIZE 1024
+#define PAYLOAD_SIZE sizeof(sendChunkPckt)
 #define WAIT_TIME 50
 
 struct data_frame{
