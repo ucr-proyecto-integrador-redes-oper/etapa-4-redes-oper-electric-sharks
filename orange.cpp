@@ -14,7 +14,7 @@
 using namespace std;
 
 Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges, string csv_file)
-: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges)
+: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), tokenCreated(false)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
@@ -157,11 +157,19 @@ void *Orange::processer(Orange* orange){
 				char buffer[IP_LEN];
 				orange->orangeSocket->decode_ip((static_cast<InitialToken*>(currentEntry->packet))->ip, buffer);
 				assert(currentEntry->packet);
-				orange->addToIPList(((InitialToken*)currentEntry->packet)->ip);
-				cout << "Node " << (currentEntry->receivedFromLeft? orange->leftIP : orange->rightIP) <<" says hello! " << endl;
+				cout << "Node " << buffer <<" says hello! " << endl;
 				
 				/*Si el paquete que recibió no lo creó este nodo*/
 				if(strcmp(buffer, orange->myIP) != 0){
+					orange->addToIPList(((InitialToken*)currentEntry->packet)->ip);
+					if(orange->allNodesIP.size() == orange->numTotalOranges - 1){
+					/*Si la ip de este naranja es menor que la de todos sus vecinos, crea el token.*/
+						if(!orange->tokenCreated && orange->orangeSocket->encode_ip(orange->myIP) < orange->findMinIP()){
+							cout << "Gané!" << endl;
+							//crear token
+							orange->createToken(orange);
+						}
+					}
 					/*Si el paquete lo recibió por el lado izquierdo, lo reenvía al nodo derecho, y si no al izquierdo.*/
 					currentEntry->sendTo = (currentEntry->receivedFromLeft ? SEND_TO_RIGHT : SEND_TO_LEFT);
 					pthread_mutex_lock(&semOut);
@@ -174,14 +182,11 @@ void *Orange::processer(Orange* orange){
 					free(currentEntry);
 				}
 				
-				if(orange->allNodesIP.size() == orange->numTotalOranges - 1){
-					/*Si la ip de este naranja es menor que la de todos sus vecinos, crea el token.*/
-					if(orange->orangeSocket->encode_ip(orange->myIP) < orange->findMinIP()){
-						cout << "Gané!" << endl;
-					}
-				}
 				
 			break;
+			
+			case ID::TOKEN_EMPTY:
+				assert(false);
 		}
         
         /*Packet packetOut; //Paquete que se crea dentro del switch dependiendo de lo que pida el paquete entrante. Vacio mientras se hacen pruebas
@@ -302,10 +307,23 @@ void Orange::beginContention(Orange* orange)
 	p->id = ID::INITIAL_TOKEN;
 	p->ip = orange->orangeSocket->encode_ip(orange->myIP);
 	
+	orange->putInSendQueue(orange, p, SEND_TO_BOTH);
+}
+
+void Orange::createToken(Orange* orange)
+{
+	Packet* token = (Token*) calloc(1, sizeof(Token));
+	token->id = ID::TOKEN_EMPTY;
+	((Token*)token)->boolean = false;
+	orange->tokenCreated = true;
+	orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
+}
+
+void Orange::putInSendQueue(Orange* orange, Packet* p, int direction)
+{
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
-	newPacket->sendTo = SEND_TO_BOTH;
-	
+	newPacket->sendTo = direction;
 	pthread_mutex_lock(&orange->semOut);
 	orange->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&orange->semOut);
@@ -353,7 +371,7 @@ int main(int argc, char* argv[]){
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     //get_args(id, orangeInPort, orangeOutPort, argc, argv);
-    Orange orangeNode(id, orangeInPort, orangeOutPort, 2);
+    Orange orangeNode(id, orangeInPort, orangeOutPort, NUM_ORANGES);
     
     pthread_t receiver;
     pthread_t processer;
