@@ -1,5 +1,8 @@
 CXX = g++
 
+orange: orange.o socket.o encoder.o error_handler.o loadCSV.o
+	$(CXX) -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp -lpthread
+
 socket.o: socket.cpp
 	$(CXX) -c socket.cpp
 
@@ -20,9 +23,6 @@ error_handler.o: error_handler.c
 
 encoder.o: encoder.cpp
 	$(CXX) -c encoder.cpp
-
-orange: orange.o socket.o encoder.o error_handler.o loadCSV.o
-	$(CXX) orange.o socket.o encoder.o error_handler.o loadCSV.o -pthread -o orange
 
 clean:
 	rm *.o
