@@ -197,7 +197,14 @@ void *Orange::processer(Orange* orange){
 					}
 					//sino, solo pasa el token al vecino derecho
 				}
-				cout << "pasando el token!" << endl;
+				if(orange->tokenCreated){
+					token->assignedPort = 0;
+				}else{
+					token->assignedPort++;
+				}
+				
+				cout << "recibí el token # "<< token->assignedPort << " de " << orange->leftIP << endl;
+				cout << "pasando el token a " << orange->rightIP << endl;
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 				orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
 		}
@@ -318,6 +325,7 @@ void Orange::createToken(Orange* orange)
 {
 	Packet* token = (Token*) calloc(1, sizeof(Token));
 	token->id = ID::TOKEN_EMPTY;
+	((Token*)token)->assignedPort = 0;
 	((Token*)token)->boolean = false;
 	orange->tokenCreated = true;
 	orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
