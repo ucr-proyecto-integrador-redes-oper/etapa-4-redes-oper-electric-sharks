@@ -198,6 +198,7 @@ void *Orange::processer(Orange* orange){
 					//sino, solo pasa el token al vecino derecho
 				}
 				cout << "pasando el token!" << endl;
+				std::this_thread::sleep_for(std::chrono::milliseconds(2));
 				orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
 		}
     }
