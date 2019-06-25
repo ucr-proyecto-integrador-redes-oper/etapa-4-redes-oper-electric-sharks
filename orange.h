@@ -21,12 +21,12 @@
 #define ORANGE_PORT 11000
 #define BLUE_PORT 12000
 #define NUM_INTERFACES 4
-#define NUM_ORANGES 3
+#define NUM_ORANGES 2
 
 using namespace std;
 
 class Orange{
-    private:
+    public:
         unsigned short int bluePort;
         size_t numTotalOranges;
         bool tokenCreated;
@@ -68,6 +68,7 @@ class Orange{
         void processInitialToken(PacketEntry*);
         void initBlueMap();
         unsigned short int findNextUnassigned(Orange*);
+        size_t findPacketLen(Packet*);
         
 
     public:

@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <thread>
 #include <limits>
+#include <iomanip>
 
 using namespace std;
 
@@ -199,10 +200,11 @@ void *Orange::processer(Orange* orange){
 				}
 				if(orange->tokenCreated){
 					token->assignedPort = 0;
+					token->assignedIp = 37;
 				}else{
 					token->assignedPort++;
 				}
-				
+				cout << "yo cree el token? " << std::boolalpha << orange->tokenCreated << endl;
 				cout << "recibí el token # "<< token->assignedPort << " de " << orange->leftIP << endl;
 				cout << "pasando el token a " << orange->rightIP << endl;
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -229,18 +231,21 @@ void *Orange::sender(Orange* orange){
 			orange->privateOutBuffer.pop();
 			rawPacket = coder.encode(toSend);
 			assert(rawPacket);
+			size_t packetLen = 0;
+			packetLen = findPacketLen(toSend);
+			cout << "largo del paquete con strlen: " << packetLen << endl;
 			switch(currentEntry->sendTo){
 				case SEND_TO_RIGHT:
-					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
+					orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
 				break;
 				
 				case SEND_TO_LEFT:
-					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->leftIP, ORANGE_PORT);
+					orange->orangeSocket->Sendto(rawPacket, packetLen, orange->leftIP, ORANGE_PORT);
 				break;
 				
 				case SEND_TO_BOTH:
-					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->rightIP, ORANGE_PORT);
-					orange->orangeSocket->Sendto(rawPacket, sizeof(rawPacket), orange->leftIP, ORANGE_PORT);
+					orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
+					orange->orangeSocket->Sendto(rawPacket, packetLen, orange->leftIP, ORANGE_PORT);
 				break;
 				
 				default:
@@ -398,6 +403,25 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 		free(currentEntry->packet);
 		free(currentEntry);
 	}
+}
+
+size_t Orange::findPacketLen(Packet* p)
+{
+	switch((unsigned int) p->id){
+		case ID::INITIAL_TOKEN:
+			return sizeof(InitialToken);
+		break;
+		
+		case ID::TOKEN_EMPTY:
+		case ID::TOKEN_FULL_AND_COMPLETE:
+		case ID::TOKEN_FULL_AND_REQUEST:
+			return sizeof(Token);
+		break;
+		
+		default:
+			assert(false);
+	}
+	return -1;
 }
 
 void Orange::initBlueMap()

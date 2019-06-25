@@ -27,16 +27,16 @@ char* Code::encode(Packet *pac){
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip),&((Token*)pac)->boolean,sizeof(Token::boolean));
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean),&((Token*)pac)->node,sizeof(Token::node));
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
-         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node)+sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
+         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
         break;
     case static_cast<int>(ID::BCHUNK):
          c = new char[10262]();
          memcpy(c,&pac->id,sizeof(Packet::id));
          memcpy(c + sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
          memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BChunk*)pac)->totalChunks,sizeof(BChunk::totalChunks));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks),&((BChunk*)pac)->chunkNumber,sizeof(BChunk::chunkNumber));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber),&((BChunk*)pac)->data[10240],sizeof(BChunk::data[10240]));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber)+sizeof(BChunk::data[10240]),&((BChunk*)pac)->hops,sizeof(BChunk::hops));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks),&((BChunk*)pac)->chunkNumber,sizeof(BChunk::chunkNumber));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks) + sizeof(BChunk::chunkNumber),&((BChunk*)pac)->data[10240],sizeof(BChunk::data[10240]));
+         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks) + sizeof(BChunk::chunkNumber) + sizeof(BChunk::data[10240]),&((BChunk*)pac)->hops,sizeof(BChunk::hops));
         break;
     case static_cast<int>(ID::BHELLO):
          c = new char[14]();
