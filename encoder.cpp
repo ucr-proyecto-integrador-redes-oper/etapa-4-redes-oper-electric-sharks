@@ -12,9 +12,9 @@ Code::~Code()
 }
 char* Code::encode(Packet *pac){
     char *c;
-    int id = pac->id;
+    unsigned char id = pac->id;
 
-    switch(id){
+    switch((unsigned int) id){
     case static_cast<int>(ID::INITIAL_TOKEN):
          c = new char[6]();
          memcpy(c, &pac->id,sizeof(Packet::id));
@@ -164,9 +164,9 @@ Packet* Code::decode(char *c){
     GLocalize *greenL;
     GKill *greenK;
     //*****************************
-	int id = 0;
+	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
-	switch(id){
+	switch((unsigned int) id){
 		case static_cast<int>(ID::INITIAL_TOKEN):
 		   orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
 		   memcpy(&orangeI->id, c,sizeof(Packet::id));

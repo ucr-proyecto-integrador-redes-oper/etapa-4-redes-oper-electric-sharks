@@ -64,7 +64,7 @@ typedef struct ID
 struct Packet
 {
 	///Packet identifier.
-	unsigned short int id;
+	unsigned char id;
 };
 
 typedef struct PacketEntry
