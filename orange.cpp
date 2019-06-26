@@ -417,7 +417,54 @@ size_t Orange::findPacketLen(Packet* p)
 		case ID::TOKEN_FULL_AND_REQUEST:
 			return sizeof(Token);
 		break;
-		
+		case ID::BCHUNK:
+		    return sizeof(BChunk);
+		    break;
+		case ID::BHELLO:
+		    return sizeof(BHello);
+		    break;
+		case ID::BEXIST:
+		    return sizeof(BExist);
+		    break;
+		case ID::BCOMPLETE:
+		    return sizeof(BComplete);
+		    break;
+		case ID::BGET:
+		    return sizeof(BGet);
+		    break;
+		case ID::BLOCALIZE:
+		    return sizeof(BLocalize);
+		    break;
+		case ID::BDELETE:
+		    return sizeof(BDelete);
+		    break;
+		case ID::ASSIGNMENT:
+		    return sizeof(Assignment);
+		    break;
+		case ID::CONNECT:
+		    return sizeof(Connect);
+		    break;
+		case ID::GO:
+		    return sizeof(Go);
+		    break;
+		case ID::GCHUNK:
+		    return sizeof(GChunk);
+		    break;
+		case ID::GEXIST:
+		    return sizeof(GExist);
+		    break;
+		case ID::GCOMPLETE:
+		    return sizeof(GComplete);
+		    break;
+		case ID::GDELETE:
+		    return sizeof(GDelete);
+		    break;
+		case ID::GLOCALIZE:
+		    return sizeof(GLocalize);
+		    break;
+		case ID::GKILL:
+		    return sizeof(GKill);
+		    break;
 		default:
 			assert(false);
 	}
