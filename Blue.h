@@ -1,6 +1,7 @@
 #ifndef BLUE_H
 #define BLUE_H
 #include <iostream>
+#include <vector>
 #include <utility>
 #include <map>
 
@@ -9,7 +10,8 @@ class Blue
 {
     public:
         map <unsigned int, unsigned short int> mapNeighbors;
-        map <unsigned int, unsigned short int>::iterator i;
+        //map <unsigned int, unsigned short int>::iterator i;
+        vector<unsigned int> ports_Neighbors;
         Blue();
         virtual ~Blue();
         void neighbors(unsigned int,unsigned short int);
