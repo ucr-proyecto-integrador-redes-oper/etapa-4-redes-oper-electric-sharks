@@ -9,6 +9,9 @@ server.o: server.cpp
 sem_test.o: sem_test.cpp
 	$(CXX) -c sem_test.cpp
 
+chat.o: chat.cpp
+	$(CXX) -c chat.cpp
+
 secudp.o: ../secudp.cpp
 	$(CXX) -c ../secudp.cpp
 
@@ -29,6 +32,9 @@ cln: client.o secudp.o socket.o semaphore.o error_handler.o
 
 sem_test: sem_test.o semaphore.o
 	$(CXX) -pthread sem_test.o semaphore.o -o sem_test
+
+chat: chat.o secudp.o socket.o semaphore.o error_handler.o
+	$(CXX) -pthread chat.o secudp.o socket.o semaphore.o error_handler.o -o chat
 
 clean:
 	rm *.o

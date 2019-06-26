@@ -16,7 +16,7 @@
 #define PAYLOAD_SIZE sizeof(sendChunkPckt)
 #define WAIT_TIME 50
 
-struct data_frame{
+struct __attribute__((__packed__)) data_frame{
 	uint8_t type;
 	uint16_t sn;
 	char payload[PAYLOAD_SIZE];
@@ -50,6 +50,7 @@ class reUDP{
 		void run();
 		void Sendto(const char *, const char *, uint16_t);
 		void Recvfrom(char *);
+		void printPacket(const struct data_frame *);
 };
 
 #endif

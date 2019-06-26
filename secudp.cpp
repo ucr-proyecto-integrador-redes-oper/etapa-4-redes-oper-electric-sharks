@@ -99,3 +99,12 @@ void reUDP::sender(){
 		sem_map.signal();
 	}
 }
+
+void reUDP::printPacket(const struct data_frame * packet){
+	for(int i = 0; i < sizeof(struct data_frame); ++i){
+		if(i % 32 == 0){
+			printf("\n0x%hhx ", i);
+		}
+		printf(" 0x%hhx ", ((char *) packet)[i]);
+	}
+}
