@@ -15,6 +15,8 @@
 
 #include <iostream>
 
+//#define DEBUG
+
 reUDP::~reUDP(){
 	sock.Close();
 }
@@ -68,6 +70,9 @@ void reUDP::receiver(){
 		}
 		if(receiver->type == 0){
 			receiver->type = 1;
+			#ifdef DEBUG
+				printf("Sending ACK with sn: %d to %s::%d\n", receiver->sn, inet_ntoa(return_addr.sin_addr), return_addr.sin_port);
+			#endif
 			sock.Sendto((const char *) receiver, sizeof(struct data_frame), &return_addr);
 			sem_queue.wait();
 			processed_messages.push(receiver);
@@ -75,6 +80,9 @@ void reUDP::receiver(){
 			sem_recv.signal();
 		} else {
 			if(sent.count(receiver->sn)){
+				#ifdef DEBUG
+					printf("Received ACK with sn: %d from %s::%d\n", receiver->sn, inet_ntoa(return_addr.sin_addr), return_addr.sin_port);
+				#endif
 				sem_map.wait();
 				delete sent[receiver->sn]->direc;
 				delete sent[receiver->sn]->frame;
@@ -91,6 +99,9 @@ void reUDP::sender(){
 		std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIME));
 		sem_map.wait();
 		for(auto it = sent.begin(); it != sent.end(); ++it){
+		#ifdef DEBUG
+			printf("Sending %d to %s::%d\n", it->first, inet_ntoa(it->second->direc->addr), it->second->direc->port);
+		#endif
 			sock.Sendto((const char *) it->second->frame, 
 						sizeof(struct data_frame), 
 						it->second->direc->addr, 

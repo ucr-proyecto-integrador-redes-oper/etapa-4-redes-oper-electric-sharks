@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <ctime>
 
 #include <unordered_map>
 #include <queue>
@@ -45,7 +46,10 @@ class reUDP{
 		void receiver();
 		void sender();
 	public:
-		reUDP(uint16_t port) : sock(UDP, port), sn(rand() % UINT16_MAX), sem_map(1), sem_queue(1) {}
+		reUDP(uint16_t port) : sock(UDP, port), sem_map(1), sem_queue(1) {
+			srand(time(NULL));
+			sn = rand() % UINT16_MAX;
+		}
 		~reUDP();
 		void run();
 		void Sendto(const char *, const char *, uint16_t);
