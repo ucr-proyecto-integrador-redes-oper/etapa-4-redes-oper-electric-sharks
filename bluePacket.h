@@ -3,86 +3,89 @@
 
 #include "packet.h"
 
-///Common structure of packets in blue-blue communications.
-struct BluePacket : Packet
-{
-	///Name of the file, when applies.
-	char name[NAME_SIZE];
-};
+typedef char byte;
+
+typedef struct __attribute__((__packed__)) chunkID{
+	byte archID[3];
+	uint32_t chunkNum;
+} chunkID;
 
 ///Structure to represent a packet carriying a chunk of data between blue nodes.
-typedef struct BChunk : BluePacket
+typedef struct __attribute__((__packed__)) BluePacket : Packet
 {
-	///Total number of chunks belonging to a file.
-	unsigned int totalChunks;
-	///Number of this chunk.
-	unsigned int chunkNumber;
-	///The chunk of data itself.
-	char data[CHUNK_SIZE];
-	/**Number of hops allowed to this packet. If it reaches 0, it is either saved on that
-	blue node's disk or discarded, but it can't be forwarded anymore.*/
-	unsigned short int hops;
-}BChunk;
+} BluePacket;
+
+typedef struct __attribute__((__packed__)) BChunk : BluePacket
+{
+	chunkID cid;
+	byte chunk[MAX_PAYLOAD_SIZE];
+} BChunk;
 
 ///Hello packet.
-typedef struct BHello : BluePacket
+typedef struct __attribute__((__packed__)) BHello : BluePacket
 {
-	unsigned short int node;
-}BHello;
+	uint16_t nodeID;
+} BHello;
 
-///Exist packet. Could be either a question or an answer.
-typedef struct BExist : BluePacket
+typedef struct __attribute__((__packed__)) BKill : BHello
 {
-	///True if the sending node is asking, false if it's answering.
-	bool question;
-	///True if a chunk of data of the file exists, false otherwise.
-	bool exist;
-}BExist;
 
-///Complete packet. Could be either a question or an answer.
-typedef struct BComplete : BluePacket
-{
-	///Total number of chunks that make up a file.
-	unsigned int totalChunks;
-	///True if the sending node is asking, false if it's answering.
-	bool question;
-	///Number of the chunk confirmed to exist with this packet.
-	unsigned int chunkNumber;
-}BComplete;
+} BKill;
 
-///Get packet. Could be either a question or an answer.
-typedef struct BGet : BluePacket
+typedef struct __attribute__((__packed__)) BJoin : BHello
 {
-	///Total number of chunks that make up a file.
-	unsigned int totalChunks;
-	/**If true, triggers a get action of that file's packets among all its neighbors.
-	If false, is just a green node asking to get a file to a blue node.*/
-	bool question;
-	///Number of this chunk.
-	unsigned int chunkNumber;
-	///The chunk of data itself.
-	char chunk[CHUNK_SIZE];
-}BGet;
 
-///Localize packet. Could be either a question or an answer.
-typedef struct BLocalize : BluePacket
-{
-	///True if a green node is asking to localize a packet, false if it's the answer.
-	bool question;
-	///IP of the node that has a chunk of the asked file.
-	unsigned int ip;
-	///Port number of the node that has a chunk of the asked file.
-	unsigned short int port;
-	///Number of the chunk localized in that node.
-	unsigned int chunkNumber;
-	
-}BLocalize;
+} BJoin;
 
-/**Delete packet. It doesn't need more than the file name to delete all the chunks
-associated with it.*/
-typedef struct BDelete : BluePacket
+typedef struct __attribute__((__packed__)) BIdo : BHello
 {
-	
-}BDelete;
+
+} BIdo;
+
+typedef struct __attribute__((__packed__)) BDaddy : BHello
+{
+
+} BDaddy;
+
+typedef struct __attribute__((__packed__)) BExist_R : BluePacket
+{
+	chunkID cid;
+} BExist_R;
+
+typedef struct __attribute__((__packed__)) BExist_A : BExist_R
+{
+
+} BExist_A;
+
+typedef struct __attribute__((__packed__)) BComplete_R : BExist_R
+{
+
+} BComplete_R;
+
+typedef struct __attribute__((__packed__)) BGet_R : BExist_R
+{
+
+} BGet_R;
+
+typedef struct __attribute__((__packed__)) BGet_A : BExist_R
+{
+
+} BGet_A;
+
+typedef struct __attribute__((__packed__)) BLocate_R : BExist_R
+{
+
+} BLocate_R;
+
+typedef struct __attribute__((__packed__)) BComplete_A : BExist_R
+{
+
+} BComplete_A;
+
+typedef struct __attribute__((__packed__)) BLocate_A : BluePacket
+{
+	uint16_t nodeID;
+	byte archID[3];
+} BLocate_A;
 
 #endif

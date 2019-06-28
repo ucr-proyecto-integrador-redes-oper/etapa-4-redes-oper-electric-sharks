@@ -31,6 +31,7 @@ char* Code::encode(Packet *pac){
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
         break;
+	/*
     case static_cast<int>(ID::BCHUNK):
          c = new char[10262]();
          memcpy(c,&pac->id,sizeof(Packet::id));
@@ -140,6 +141,7 @@ char* Code::encode(Packet *pac){
          memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
          memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
     break;
+	*/
 
     }
 	return c;
@@ -149,6 +151,7 @@ Packet* Code::decode(char *c){
 	  //Declaracion de cada struct y de ahí accede a los campos de el y de los que hereda*************
     InitialToken *orangeI;
     Token *orangePac;
+	/*
     BChunk *blueC;
     BHello *blueH;
     BExist *blueE;
@@ -165,6 +168,7 @@ Packet* Code::decode(char *c){
     GDelete *greenD;
     GLocalize *greenL;
     GKill *greenK;
+	*/
     //*****************************
 	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
@@ -185,6 +189,7 @@ Packet* Code::decode(char *c){
 		   memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));
            return orangePac;
 		break;
+		/*
 		 case static_cast<int>(ID::BCHUNK):
          blueC=(BChunk*) calloc  (1,sizeof(BChunk));
          memcpy(&blueC->id,c,sizeof(Packet::id));
@@ -309,6 +314,7 @@ Packet* Code::decode(char *c){
          memcpy(&greenK->node,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GKill::node));
          return greenK;
     break;
+	*/
 
     }
     cout << "Invalid id: " << id << endl;
@@ -327,6 +333,7 @@ size_t Code::findPacketLen(const Packet* p)
 		case ID::TOKEN_FULL_AND_REQUEST:
 			return sizeof(Token);
 		break;
+		/*
 		case ID::BCHUNK:
 		    return sizeof(BChunk);
 		    break;
@@ -375,6 +382,7 @@ size_t Code::findPacketLen(const Packet* p)
 		case ID::GKILL:
 		    return sizeof(GKill);
 		    break;
+		*/
 		default:
 			error_exit(-1, "Id desconocido!\n");
 	}
