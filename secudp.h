@@ -13,9 +13,9 @@
 
 #include "socket.h"
 #include "semaphore.h"
-#include "packets.h"
+#include "bluePacket.h"
 
-#define PAYLOAD_SIZE sizeof(sendChunkPckt)
+#define PAYLOAD_SIZE sizeof(BChunk)
 #define WAIT_TIME 50
 
 struct __attribute__((__packed__)) data_frame{

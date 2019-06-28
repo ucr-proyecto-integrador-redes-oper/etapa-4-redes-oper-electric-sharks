@@ -44,19 +44,20 @@ typedef struct ID
 		BGET_A,
 		BLOCATE_R,
 		BLOCATE_A,
-		BKILL,
 		BDELETE,
 		BJOIN_TREE,
 		BIDO,
-		BDADDY
+		BIDONOT = 18,
+		BDADDY = 13
 	};
 	
 	//ID space for blue-orange packets: [40, 50]
 	enum BLUE_ORANGE
 	{
-		ASSIGNMENT = 40,
-		CONNECT,
-		GO
+		BOJOIN_GRAPH = 14,
+		BOGRAPH_POSITION_E,
+		BOGRAPH_POSITION_N,
+		BOGRAPH_COMPLETE
 	};
 	
 	//ID space for green-blue packets: [50, ...]
@@ -83,8 +84,9 @@ struct Packet
 typedef struct PacketEntry
 {
 	Packet* packet;
-	int typeNode;
+	bool receivedFromLeft;
 	int sendTo;
+	int typeNode;
 } PacketEntry;
 
 #endif // PACKET_H

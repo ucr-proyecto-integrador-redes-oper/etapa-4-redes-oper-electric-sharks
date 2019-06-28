@@ -2,36 +2,33 @@
 #define BLUE_ORANGE_H
 
 #include "packet.h"
+#include <cstdint>
 
-///Common structure for blue-orange packets.
-struct BlueOrange : Packet
+typedef struct __attribute__((__packed__)) BlueOrange : Packet
 {
 	
-};
+} BlueOrange;
 
-///Structure of an assignment packet, to assign graph nodes to blue nodes.
-typedef struct Assignment : BlueOrange
+typedef struct __attribute__((__packed__)) BOJoinGraph : BlueOrange
 {
-	///Graph node.
-	unsigned short int nodeID;
-	///Number of neighbors of the node in the graph.
-	unsigned short int totalNeighbors;
-	///IP address of a neighbor.
-	unsigned int ip;
-	///Port number of a neighbor.
-	unsigned short int port;
-}Assignment;
 
-///Structure of a connect packet, nothing special.
-typedef struct Connect : BlueOrange
+} BOJoinGraph;
+
+typedef struct __attribute__((__packed__)) BOGraphPosition_E : BlueOrange
 {
+	uint16_t nodeID;
+	uint16_t neighborID;
+} BOGraphPosition_E;
+
+typedef struct __attribute__((__packed__)) BOGraphPosition_N : BOGraphPosition_E
+{
+	uint32_t neighborIP;
+	uint16_t neighborPort;
 	
-}Connect;
+} BOGraphPosition_N;
 
-///Structure of a go packet, nothing special.
-typedef struct Go : BlueOrange
+typedef struct __attribute__((__packed__)) BOGraphComplete : BlueOrange
 {
-	
-}Go;
 
+} BOGraphComplete;
 #endif
