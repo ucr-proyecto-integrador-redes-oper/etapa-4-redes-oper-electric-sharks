@@ -76,6 +76,7 @@ class Orange{
         void putInSendQueue(Orange*, Packet*, int destination = NODE_ORANGE);
         void processInitialToken(PacketEntry*);
         void processToken(Orange*, PacketEntry*);
+        void processJoinRequest(Orange*, PacketEntry*);
         void initBlueMap();
         int findNextUnassigned(Orange*);
         

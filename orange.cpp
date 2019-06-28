@@ -153,6 +153,9 @@ void *Orange::processer(Orange* orange){
 				orange->processToken(orange, currentEntry);
 			break;
 			
+			case ID::BOJOIN_GRAPH:
+				orange->processJoinRequest(orange, currentEntry);
+			
 			default:
 				error_exit(-1, "Id desconocido!\n");
 		}
@@ -360,13 +363,6 @@ void Orange::processToken(Orange* orange, PacketEntry* currentEntry)
 			if(newAssignment == -1){
 				error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
 			}
-			/*BlueRequest* blueRequest = orange->blueRequests.front(); //hay que crearlo, no existe
-			orange->blueRequests.pop();
-			token->node = newAssignment;
-			token->assignedIp = blueRequest->ip;
-			token->assignedPort = blueRequest->port;
-			token->boolean = true;
-			orange->tokenOccupied = true;*/
 		}
 		//sino, solo pasa el token al vecino derecho
 	}
@@ -374,6 +370,17 @@ void Orange::processToken(Orange* orange, PacketEntry* currentEntry)
 	cout << "pasando el token a " << orange->rightIP << endl;
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	orange->putInSendQueue(orange, token, NODE_ORANGE);
+}
+
+void Orange::processJoinRequest(Orange* orange, PacketEntry*)
+{
+	/*BlueRequest* blueRequest = orange->blueRequests.front(); //hay que crearlo, no existe
+	orange->blueRequests.pop();
+	token->node = newAssignment;
+	token->assignedIp = blueRequest->ip;
+	token->assignedPort = blueRequest->port;
+	token->boolean = true;
+	orange->tokenOccupied = true;*/
 }
 
 void Orange::initBlueMap()
