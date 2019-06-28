@@ -32,7 +32,9 @@ void reUDP::Sendto(const char * message, const char * destination, uint16_t port
 	frame->type = 0;
 	frame->sn = sn;
 	memcpy((void *) frame->payload, (const void *) message, len);
-	printPacket(frame, len);
+	#ifdef DEBUG
+		printPacket(frame, len);
+	#endif
 
 	struct direction * direc = new struct direction();
 	inet_aton(destination, &direc->addr);
