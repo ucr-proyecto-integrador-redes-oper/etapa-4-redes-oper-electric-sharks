@@ -204,9 +204,9 @@ void *Orange::processer(Orange* orange){
 				}else{
 					token->assignedPort++;
 				}
-				/*cout << "yo cree el token? " << std::boolalpha << orange->tokenCreated << endl;
-				cout << "recibí el token # "<< token->assignedPort << " de " << orange->leftIP << endl;
-				cout << "pasando el token a " << orange->rightIP << endl;*/
+				/*cout << "yo cree el token? " << std::boolalpha << orange->tokenCreated << endl;*/
+				cout << "recibí el token " << endl;
+				cout << "pasando el token a " << orange->rightIP << endl;
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 				orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
 		}
@@ -233,7 +233,6 @@ void *Orange::sender(Orange* orange){
 			assert(rawPacket);
 			size_t packetLen = 0;
 			packetLen = findPacketLen(toSend);
-			cout << "largo del paquete con strlen: " << packetLen << endl;
 			switch(currentEntry->sendTo){
 				case SEND_TO_RIGHT:
 					orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
