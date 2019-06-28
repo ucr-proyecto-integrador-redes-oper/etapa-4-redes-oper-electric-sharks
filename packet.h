@@ -84,6 +84,7 @@ typedef struct PacketEntry
 {
 	Packet* packet;
 	int typeNode;
+	int sendTo;
 } PacketEntry;
 
 #endif // PACKET_H

@@ -67,13 +67,13 @@ class Orange{
 
         void * receiver(Orange*, int type);
         void * processer(Orange*);
-        void * sender(Orange*, int type);
+        void * sender(Orange*);
         void beginContention();
         int validateIP(char* ip);
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
         void createToken(Orange*);
-        void putInSendQueue(Orange*, Packet*);
+        void putInSendQueue(Orange*, Packet*, int destination = NODE_ORANGE);
         void processInitialToken(PacketEntry*);
         void processToken(Orange*, PacketEntry*);
         void initBlueMap();

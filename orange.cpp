@@ -164,7 +164,7 @@ void *Orange::processerHelper(void *context){
 }
 
 ///Funcion que toma paquetes de la cola compartida y los envia por el socket
-void *Orange::sender(Orange* orange, int type){
+void *Orange::sender(Orange* orange){
     char* rawPacket = nullptr;
     
     while(true){
@@ -178,11 +178,9 @@ void *Orange::sender(Orange* orange, int type){
 			assert(rawPacket);
 			size_t packetLen = 0;
 			packetLen = Code::findPacketLen(toSend);
-
 			/*Envía el paquete a su vecino derecho.*/
-			if(type == COMM_ORANGE && currentEntry->typeNode == NODE_ORANGE)
-				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
-
+			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, currentEntry->sendTo == NODE_ORANGE? ORANGE_PORT : BLUE_PORT);
+			
 			free(toSend);
             free(currentEntry);
         }
@@ -198,9 +196,8 @@ void *Orange::sender(Orange* orange, int type){
     }
 }
 
-void *Orange::senderHelper(void *args){
-	OrangeArgs* arg = (OrangeArgs*) args;
-    return ((Orange*)arg->node)->sender((Orange*)arg->node, ((OrangeArgs*)args)->commWith);
+void *Orange::senderHelper(void *context){
+    return ((Orange *)context)->sender((Orange*) context);
 }
 
 void Orange::getHostIP()
@@ -267,16 +264,11 @@ void Orange::createToken(Orange* orange)
 	orange->putInSendQueue(orange, token);
 }
 
-void Orange::putInSendQueue(Orange* orange, Packet* p)
+void Orange::putInSendQueue(Orange* orange, Packet* p, int destination)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
-	if(static_cast<OrangePacket*>(p))
-		newPacket->typeNode = NODE_ORANGE;
-	else if(static_cast<BluePacket*>(p))
-		newPacket->typeNode = NODE_BLUE;
-	else if(static_cast<BlueOrange*>(p))
-		newPacket->typeNode = NODE_BLUE;
+	newPacket->sendTo = destination;
 	pthread_mutex_lock(&orange->lockOut);
 	orange->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&orange->lockOut);
