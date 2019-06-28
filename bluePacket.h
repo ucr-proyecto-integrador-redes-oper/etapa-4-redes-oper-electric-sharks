@@ -6,10 +6,6 @@
 
 typedef char byte;
 
-typedef struct __attribute__((__packed__)) chunkID{
-	byte archID[3];
-	uint32_t chunkNum;
-} chunkID;
 
 typedef struct __attribute__((__packed__)) BluePacket : Packet
 {
@@ -17,7 +13,8 @@ typedef struct __attribute__((__packed__)) BluePacket : Packet
 
 typedef struct __attribute__((__packed__)) BChunk : BluePacket
 {
-	chunkID cid;
+	byte archID[3];
+	uint32_t chunkNum;
 	byte chunk[MAX_PAYLOAD_SIZE];
 } BChunk;
 
@@ -49,7 +46,8 @@ typedef struct __attribute__((__packed__)) BDaddy : BHello
 
 typedef struct __attribute__((__packed__)) BExist_R : BluePacket
 {
-	chunkID cid;
+	byte archID[3];
+	uint32_t chunkNum;
 } BExist_R;
 
 typedef struct __attribute__((__packed__)) BExist_A : BExist_R
