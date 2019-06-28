@@ -22,6 +22,8 @@
 #define BLUE_PORT 12000
 #define NUM_INTERFACES 4
 #define NUM_ORANGES 2
+#define COMM_ORANGE 10
+#define COMM_BLUE 11
 
 using namespace std;
 
@@ -56,7 +58,7 @@ class Orange{
         Socket * blueSocket;
         Code coder;
 
-        void * receiver(Orange*);
+        void * receiver(Orange*, int type);
         void * processer(Orange*);
         void * sender(Orange*);
         void beginContention();
@@ -82,13 +84,20 @@ class Orange{
         Orange(int, unsigned short int, unsigned short int, int = 6, string = "Grafo_Referencia.csv");
         ~Orange();
         void requestIP();
-        static void * receiverHelper(void *context);
+        static void * receiverHelper(void *args);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
         void init();
         void getHostIP();
         void print_graph();
 };
+
+typedef struct orangeArgs
+{
+	Orange* node;
+	int commWith;
+} OrangeArgs;
+
 
 #endif
 

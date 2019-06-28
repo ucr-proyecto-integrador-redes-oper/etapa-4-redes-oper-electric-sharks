@@ -13,11 +13,13 @@
 #define SEND_TO_RIGHT 0
 #define SEND_TO_LEFT 1
 #define SEND_TO_BOTH 2
+#define NODE_BLUE 3
+#define NODE_ORANGE 4
+#define NODE_GREEN 5
 
 /// Struct with enumerations that identify the packets by their ID field.
 typedef struct ID
 {
-	//ID space for orange packets: [0, 19]
 	enum ORANGE
 	{
 		INITIAL_TOKEN,
@@ -26,7 +28,6 @@ typedef struct ID
 		TOKEN_EMPTY
 	};
 	
-	//ID space for blue packets: [20, 39]
 	enum BLUE
 	{
 		BCHUNK = 20,
@@ -38,7 +39,6 @@ typedef struct ID
 		BDELETE
 	};
 	
-	//ID space for blue-orange packets: [40, 50]
 	enum BLUE_ORANGE
 	{
 		ASSIGNMENT = 40,
@@ -46,7 +46,6 @@ typedef struct ID
 		GO
 	};
 	
-	//ID space for green-blue packets: [50, ...]
 	enum GREEN_BLUE
 	{
 		GCHUNK = 50,
@@ -56,7 +55,7 @@ typedef struct ID
 		GLOCALIZE,
 		GKILL
 	};
-} ID;
+} ID; 
 
 
 
@@ -72,6 +71,7 @@ typedef struct PacketEntry
 	Packet* packet;
 	bool receivedFromLeft;
 	int sendTo;
+	int typeNode;
 } PacketEntry;
 
 #endif // PACKET_H

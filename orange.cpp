@@ -82,7 +82,7 @@ void get_args(int &id, unsigned short int &orangeInPort, unsigned short int &ora
 }
 
 ///Funcion para el thread que recibe paquetes del socket y los pone en la cola compartida para el siguiente thread
-void *Orange::receiver(Orange* orange){
+void *Orange::receiver(Orange* orange, int type){
     /*Crea el socket */
     char* buffer = new char[BUF_SIZE];
     char senderBuffer[IP_LEN];
@@ -97,16 +97,17 @@ void *Orange::receiver(Orange* orange){
         /*Lee el socket */
         currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
         
-        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
+        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, (type == NODE_ORANGE? ORANGE_PORT : BLUE_PORT), &senderAddr);
         
         /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer);
         assert(currentPacket);
 		
-		orange->orangeSocket->decode_ip(senderAddr.sin_addr.s_addr, senderBuffer);
+		//orange->orangeSocket->decode_ip(senderAddr.sin_addr.s_addr, senderBuffer);
 		
 		currentEntry->packet = currentPacket;
-		currentEntry->receivedFromLeft = (strcmp(buffer, orange->leftIP) == 0 ? true : false);
+		//currentEntry->receivedFromLeft = (strcmp(buffer, orange->leftIP) == 0 ? true : false);
+		currentEntry->typeNode = type;
 		
 		/*Mete el paquete a la cola privada*/
 		orange->privateInBuffer.push(currentEntry);
@@ -132,8 +133,9 @@ void *Orange::receiver(Orange* orange){
     }
 }
 
-void *Orange::receiverHelper(void *context){
-    return ((Orange *)context)->receiver((Orange*) context);
+void *Orange::receiverHelper(void *args){
+	OrangeArgs* arg = (OrangeArgs*) args;
+    return ((Orange*)arg->node)->receiver((Orange*)arg->node, ((OrangeArgs*)args)->commWith);
 }
 
 ///Funcion para el thread que toma un paquete de la cola compartida, lo procesa y pone mensajes en la cola compartida para el siguiente thread
@@ -509,22 +511,32 @@ int main(int argc, char* argv[]){
     //get_args(id, orangeInPort, orangeOutPort, argc, argv);
     Orange orangeNode(id, orangeInPort, orangeOutPort, numOranges);
     
-    pthread_t receiver;
+    pthread_t receiverOranges;
+    pthread_t receiverBlues;
     pthread_t processer;
     pthread_t sender;
+    
+    OrangeArgs args;
+    args.node = &orangeNode;
+    args.commWith = COMM_ORANGE;
 
-	int resReceiver = pthread_create(&receiver, NULL, &Orange::receiverHelper, &orangeNode);
+	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args);
+	
+	args.commWith = COMM_BLUE;
+	
+	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args);
 	
 	//orangeNode.print_graph();
 	
     orangeNode.requestIP();
 	orangeNode.getHostIP();
 
-    int resProcesser = pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
-    int resSender = pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
+    pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
+	pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
 	
 	/*Nunca hacen exit*/
-	pthread_join(receiver, (void**) nullptr);
+	pthread_join(receiverOranges, (void**) nullptr);
+	pthread_join(receiverBlues, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
 	pthread_join(sender, (void**) nullptr);
 	
