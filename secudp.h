@@ -9,6 +9,7 @@
 #include <queue>
 
 #include <arpa/inet.h>
+#include <sys/types.h>
 
 #include "socket.h"
 #include "semaphore.h"
@@ -31,6 +32,7 @@ struct direction{
 struct map_entry{
 	struct direction * direc;
 	struct data_frame * frame;
+	size_t len;
 	bool received;
 };
 
@@ -52,9 +54,9 @@ class reUDP{
 		}
 		~reUDP();
 		void run();
-		void Sendto(const char *, const char *, uint16_t);
+		void Sendto(const char *, const char *, uint16_t, size_t = PAYLOAD_SIZE);
 		void Recvfrom(char *);
-		void printPacket(const struct data_frame *);
+		void printPacket(const struct data_frame *, size_t);
 };
 
 #endif

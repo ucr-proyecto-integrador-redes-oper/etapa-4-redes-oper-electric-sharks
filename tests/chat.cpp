@@ -26,7 +26,7 @@ void sender(reUDP * sock){
 		printf("Escriba su mensaje\n");
 		fgets(buffer, MSG_LEN, stdin);
 
-		sock->Sendto(buffer, ip, myport);
+		sock->Sendto(buffer, ip, myport, strlen(buffer));
 	}
 }
 
