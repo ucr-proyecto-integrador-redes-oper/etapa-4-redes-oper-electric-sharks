@@ -323,7 +323,7 @@ void Orange::beginContention()
 	InitialToken* p = (InitialToken*) calloc(1, sizeof(InitialToken));
 	p->id = ID::INITIAL_TOKEN;
 	p->ip = this->orangeSocket->encode_ip(this->myIP);
-	this->putInSendQueue(this, p, SEND_TO_BOTH);
+	this->putInSendQueue(this, p, SEND_TO_RIGHT);
 }
 
 void Orange::createToken(Orange* orange)
@@ -503,11 +503,12 @@ unsigned long Orange::findMinIP()
 int main(int argc, char* argv[]){
 	if(argc < 2)
 		return (cout << "Usage: " << argv[0] << " <num_oranges>" << endl), 0;
+	int numOranges = atoi(argv[1]);
     int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
     //get_args(id, orangeInPort, orangeOutPort, argc, argv);
-    Orange orangeNode(id, orangeInPort, orangeOutPort, NUM_ORANGES);
+    Orange orangeNode(id, orangeInPort, orangeOutPort, numOranges);
     
     pthread_t receiver;
     pthread_t processer;
