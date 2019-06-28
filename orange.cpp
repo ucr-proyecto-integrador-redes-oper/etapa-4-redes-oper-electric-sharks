@@ -180,7 +180,8 @@ void *Orange::sender(Orange* orange, int type){
 			packetLen = Code::findPacketLen(toSend);
 
 			/*Envía el paquete a su vecino derecho.*/
-			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, type);
+			if(type == COMM_ORANGE && currentEntry->typeNode == NODE_ORANGE)
+				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
 
 			free(toSend);
             free(currentEntry);
@@ -270,6 +271,12 @@ void Orange::putInSendQueue(Orange* orange, Packet* p)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
+	if(static_cast<OrangePacket*>(p))
+		newPacket->typeNode = NODE_ORANGE;
+	else if(static_cast<BluePacket*>(p))
+		newPacket->typeNode = NODE_BLUE;
+	else if(static_cast<BlueOrange*>(p))
+		newPacket->typeNode = NODE_BLUE;
 	pthread_mutex_lock(&orange->lockOut);
 	orange->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&orange->lockOut);
