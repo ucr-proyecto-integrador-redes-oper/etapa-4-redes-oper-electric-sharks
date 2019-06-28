@@ -17,9 +17,12 @@
 #define NODE_ORANGE 4
 #define NODE_GREEN 5
 
+#define MAX_PAYLOAD_SIZE 1024
+
 /// Struct with enumerations that identify the packets by their ID field.
 typedef struct ID
 {
+	//ID space for orange packets: [0, 19]
 	enum ORANGE
 	{
 		INITIAL_TOKEN,
@@ -28,17 +31,27 @@ typedef struct ID
 		TOKEN_EMPTY
 	};
 	
+	//ID space for blue packets: [20, 39]
 	enum BLUE
 	{
-		BCHUNK = 20,
+		BCHUNK,
 		BHELLO,
-		BEXIST,
-		BCOMPLETE,
-		BGET,
-		BLOCALIZE,
-		BDELETE
+		BEXISTS_R,
+		BEXISTS_A,
+		BCOMPLETE_R,
+		BCOMPLETE_A,
+		BGET_R,
+		BGET_A,
+		BLOCATE_R,
+		BLOCATE_A,
+		BKILL,
+		BDELETE,
+		BJOIN_TREE,
+		BIDO,
+		BDADDY
 	};
 	
+	//ID space for blue-orange packets: [40, 50]
 	enum BLUE_ORANGE
 	{
 		ASSIGNMENT = 40,
@@ -46,6 +59,7 @@ typedef struct ID
 		GO
 	};
 	
+	//ID space for green-blue packets: [50, ...]
 	enum GREEN_BLUE
 	{
 		GCHUNK = 50,
@@ -55,7 +69,7 @@ typedef struct ID
 		GLOCALIZE,
 		GKILL
 	};
-} ID; 
+} ID;
 
 
 
@@ -69,6 +83,8 @@ struct Packet
 typedef struct PacketEntry
 {
 	Packet* packet;
+	bool receivedFromLeft;
+	int sendTo;
 	int typeNode;
 } PacketEntry;
 
