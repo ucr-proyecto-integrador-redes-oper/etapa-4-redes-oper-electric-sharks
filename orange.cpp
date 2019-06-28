@@ -86,7 +86,8 @@ void *Orange::receiver(Orange* orange, int type){
     while(true){
         currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
         /*Lee del socket*/
-        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, (type == NODE_ORANGE? ORANGE_PORT : BLUE_PORT), &senderAddr);
+
+        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, (type == COMM_ORANGE? ORANGE_PORT : BLUE_PORT), &senderAddr);
         
         /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer);
@@ -418,15 +419,17 @@ int main(int argc, char* argv[]){
     pthread_t processer;
     pthread_t sender;
     
-    OrangeArgs args;
-    args.node = &orangeNode;
-    args.commWith = COMM_ORANGE;
+    OrangeArgs args1;
+    OrangeArgs args2;
+    args1.node = &orangeNode;
+    args1.commWith = COMM_ORANGE;
 
-	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args);
+	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args1);
 	
-	args.commWith = COMM_BLUE;
+	args2.node = &orangeNode;
+	args2.commWith = COMM_BLUE;
 	
-	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args);
+	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args2);
 	
 	//orangeNode.print_graph();
 	
