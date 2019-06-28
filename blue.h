@@ -1,7 +1,6 @@
 #ifndef ORANGE_H
 #define ORANGE_H
 
-
 #include "packet.h"
 #include "socket.h"
 #include "encoder.h"
@@ -15,7 +14,7 @@
 
 #define BUF_SIZE 1024
 #define IP_LEN 16
-#define ORANGE_PORT 13000
+#define ORANGE_PORT 9999
 
 
 using namespace std;
@@ -48,12 +47,10 @@ class Blue{
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
 
-
         void * receiver(Blue*);
         void * processer(Blue*);
         void * sender(Blue*);
 
-    protected:
     private:
 
         int validateIP(char* ip);

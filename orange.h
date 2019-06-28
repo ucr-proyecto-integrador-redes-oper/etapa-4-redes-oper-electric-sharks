@@ -67,7 +67,7 @@ class Orange{
 
         void * receiver(Orange*, int type);
         void * processer(Orange*);
-        void * sender(Orange*);
+        void * sender(Orange*, int type);
         void beginContention();
         int validateIP(char* ip);
         void addToIPList(unsigned int ip);

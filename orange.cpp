@@ -164,7 +164,7 @@ void *Orange::processerHelper(void *context){
 }
 
 ///Funcion que toma paquetes de la cola compartida y los envia por el socket
-void *Orange::sender(Orange* orange){
+void *Orange::sender(Orange* orange, int type){
     char* rawPacket = nullptr;
     
     while(true){
@@ -180,7 +180,7 @@ void *Orange::sender(Orange* orange){
 			packetLen = Code::findPacketLen(toSend);
 
 			/*Envía el paquete a su vecino derecho.*/
-			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
+			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, type);
 
 			free(toSend);
             free(currentEntry);
@@ -197,8 +197,9 @@ void *Orange::sender(Orange* orange){
     }
 }
 
-void *Orange::senderHelper(void *context){
-    return ((Orange *)context)->sender((Orange*) context);
+void *Orange::senderHelper(void *args){
+	OrangeArgs* arg = (OrangeArgs*) args;
+    return ((Orange*)arg->node)->sender((Orange*)arg->node, ((OrangeArgs*)args)->commWith);
 }
 
 void Orange::getHostIP()
@@ -417,18 +418,24 @@ int main(int argc, char* argv[]){
     pthread_t receiverOranges;
     pthread_t receiverBlues;
     pthread_t processer;
-    pthread_t sender;
+    pthread_t senderOranges;
+    pthread_t senderBlues;
     
     OrangeArgs args1;
     OrangeArgs args2;
+    OrangeArgs args3;
+    OrangeArgs args4;
+    
     args1.node = &orangeNode;
     args1.commWith = COMM_ORANGE;
+    args2.node = &orangeNode;
+	args2.commWith = COMM_BLUE;
+	args3.node = &orangeNode;
+	args3.commWith = COMM_ORANGE;
+	args4.node = &orangeNode;
+	args4.commWith = COMM_BLUE;
 
 	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args1);
-	
-	args2.node = &orangeNode;
-	args2.commWith = COMM_BLUE;
-	
 	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args2);
 	
 	//orangeNode.print_graph();
@@ -437,12 +444,15 @@ int main(int argc, char* argv[]){
 	orangeNode.getHostIP();
 
     pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
-	pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
+	
+	pthread_create(&senderOranges, NULL, &Orange::senderHelper, &args3);
+	pthread_create(&senderBlues, NULL, &Orange::senderHelper, &args4);
 	
 	/*Nunca hacen exit*/
 	pthread_join(receiverOranges, (void**) nullptr);
 	pthread_join(receiverBlues, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
-	pthread_join(sender, (void**) nullptr);
+	pthread_join(senderOranges, (void**) nullptr);
+	pthread_join(senderBlues, (void**) nullptr);
 	
 }
