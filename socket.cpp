@@ -147,7 +147,6 @@ int Socket::Recvfrom(char * message, int len, struct sockaddr_in * client_addr){
 }
 
 int Socket::Recvfrom(char * message, int len, unsigned short port, struct sockaddr_in* client_addr){
-	struct sockaddr_in sender_addr;
 	struct sockaddr_in receiver_addr;
 	if(!client_addr)
 		client_addr = &receiver_addr;

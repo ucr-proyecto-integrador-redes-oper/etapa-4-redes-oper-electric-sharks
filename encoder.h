@@ -14,9 +14,10 @@ class Code
 {
     public:
         Code();
-        virtual ~Code();
+        ~Code();
         char* encode(Packet *);
         Packet* decode(char *);
+        static size_t findPacketLen(const Packet* p);
     protected:
     private:
 };

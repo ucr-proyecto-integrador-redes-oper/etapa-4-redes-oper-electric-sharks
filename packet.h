@@ -69,8 +69,6 @@ struct Packet
 typedef struct PacketEntry
 {
 	Packet* packet;
-	bool receivedFromLeft;
-	int sendTo;
 	int typeNode;
 } PacketEntry;
 

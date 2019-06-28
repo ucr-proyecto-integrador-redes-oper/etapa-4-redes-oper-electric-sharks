@@ -29,10 +29,17 @@ using namespace std;
 
 class Orange{
     public:
+        int id;
+        unsigned short int orangeInPort;
+        unsigned short int orangeOutPort;
         unsigned short int bluePort;
         size_t numTotalOranges;
         bool tokenCreated;
         bool tokenOccupied;	//bandera para saber si este nodo ocupó el token.
+        
+        char rightIP[IP_LEN];
+        char myIP[IP_LEN];
+        
         
         vector<unsigned int> allNodesIP;
 
@@ -47,8 +54,8 @@ class Orange{
         //Contiene un nodo del grafo y su IP y puerto asociado, si existe.
         unordered_map<unsigned short int, pair<unsigned int, unsigned short int>> blueMapping;
 
-        pthread_mutex_t semIn;
-        pthread_mutex_t semOut;
+        pthread_mutex_t lockIn;
+        pthread_mutex_t lockOut;
         
         sem_t InBufferSem;
         sem_t OutBufferSem;
@@ -66,20 +73,14 @@ class Orange{
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
         void createToken(Orange*);
-        void putInSendQueue(Orange*, Packet*, int);
+        void putInSendQueue(Orange*, Packet*);
         void processInitialToken(PacketEntry*);
+        void processToken(Orange*, PacketEntry*);
         void initBlueMap();
-        unsigned short int findNextUnassigned(Orange*);
-        size_t findPacketLen(Packet*);
+        int findNextUnassigned(Orange*);
         
 
     public:
-        unsigned short int orangeInPort;
-        unsigned short int orangeOutPort;
-        char leftIP[IP_LEN];
-        char rightIP[IP_LEN];
-        char myIP[IP_LEN];
-        int id;
 
         Orange(int, unsigned short int, unsigned short int, int = 6, string = "Grafo_Referencia.csv");
         ~Orange();

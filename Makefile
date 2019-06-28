@@ -3,6 +3,9 @@ CXX = g++
 orange: orange.o socket.o encoder.o error_handler.o loadCSV.o
 	$(CXX) -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp -pthread
 
+warn: orange.o socket.o encoder.o error_handler.o loadCSV.o
+	$(CXX) -Wall -Wextra -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp -pthread
+
 socket.o: socket.cpp
 	$(CXX) -c socket.cpp
 
