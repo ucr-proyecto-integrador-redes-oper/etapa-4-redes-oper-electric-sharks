@@ -100,14 +100,15 @@ void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
 	sem_post(&blue->OutBufferSem);
 }
 
-Blue::Blue()
+Blue::Blue(char* orangeIP, int orangePort)
 {
     sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->semIn, nullptr);
 	pthread_mutex_init(&this->semOut, nullptr);
 
-
+    this->orangeIP = orangeIP;
+    this->orangePort = orangePort;
 }
 
 int main(int argc, char* argv[]){
@@ -116,11 +117,11 @@ int main(int argc, char* argv[]){
     pthread_t sender;
     
     unsigned short int orangePort;
-    char* ip;
+    char* orangeIP;
      
-    get_args(ip, orangePort, argc, argv);
+    get_args(orangeIP, orangePort, argc, argv);
 
-    Blue blueNode();
+    Blue blueNode(orangeIP,orangePort);
 /* 
     int resReceiver = pthread_create(&receiver, NULL, &Blue::receiverHelper, &blueNode);
 

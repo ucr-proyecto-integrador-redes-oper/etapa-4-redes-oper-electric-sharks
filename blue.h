@@ -34,16 +34,18 @@ class Blue{
         sem_t InBufferSem;
         sem_t OutBufferSem;
 
-        void putInSendQueue(Blue* blue, Packet* p, int direction);
+        int orangePort;
+        char* orangeIP;
 
         map <unsigned int, unsigned short int> mapNeighbors;
         //map <unsigned int, unsigned short int>::iterator i;
         vector<unsigned int> ports_Neighbors;
-        Blue();
+        
+        Blue(char*, int);
         virtual ~Blue();
         void neighbors(unsigned int,unsigned short int);
         void sendChunk(char []);
-
+        void putInSendQueue(Blue* blue, Packet* p, int direction);
         static void * receiverHelper(void *context);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
