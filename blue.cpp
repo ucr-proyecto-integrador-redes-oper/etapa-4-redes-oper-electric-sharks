@@ -1,6 +1,6 @@
-
+#include <semaphore.h>
 #include "blue.h"
-
+ 
 Blue::~Blue()
 {
     sem_destroy(&this->InBufferSem);
@@ -14,7 +14,7 @@ Blue::~Blue()
  *
  */
 
-void *Blue::sender(Blue* blue){
+void *Blue::receiver(Blue* blue){
 }
 
 void *Blue::processer(Blue* blue){
@@ -51,14 +51,14 @@ void Blue::neighbors(unsigned int IP,unsigned short int puerto){
  *
  */
 
-int Blue::validateIP(char* ip)
+int validateIP(char* ip)
 {
 	char ipBuffer[IP_LEN];
 	return (inet_pton(AF_INET, ip, ipBuffer) == 1 ? 1 : 0);
 }
 
 ///Funcion que verifica la cantidad de datos por consola y los convierte de strings a los datos de la clase Orange
-void get_args(int &orangeIP, unsigned short int &orangePort, int argc, char ** argv){
+void get_args(char* &orangeIP, unsigned short int &orangePort, int argc, char ** argv){
     switch(argc){
 		case 1:
         case 2:
@@ -67,10 +67,9 @@ void get_args(int &orangeIP, unsigned short int &orangePort, int argc, char ** a
             exit(EXIT_FAILURE);
         default:
 
-            if((id = stoi(argv[1])) == 0 || (orangeInPort = (unsigned short) stoi(argv[2], NULL)) == 0  || \
-            (orangeOutPort = (unsigned short) stoi(argv[3], NULL)) == 0){ // Si el argumento no es un número válido el programa se cae aquí
+            if((orangeIP = argv[1]) == 0 || (orangePort = (unsigned short) stoi(argv[2], NULL)) == 0 || (validateIP(orangeIP) == 0)){ // Si el argumento no es un número válido el programa se cae aquí
 				perror("Invalid argument!\n");
-				printf("Format: %s <port>\n", argv[0]);
+				printf("Format: %s ip nodo naranja para solicitar asignacion> <puerto nodo naranja para solicitar asignacion>\n", argv[0]);
 				exit(EXIT_FAILURE);
             }
     }
@@ -103,23 +102,32 @@ void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
 
 Blue::Blue()
 {
+    sem_init(&this->InBufferSem, 0, 0);
+	sem_init(&this->OutBufferSem, 0, 0);
+	pthread_mutex_init(&this->semIn, nullptr);
+	pthread_mutex_init(&this->semOut, nullptr);
+
+
 }
 
 int main(int argc, char* argv[]){
     pthread_t receiver;
     pthread_t processer;
     pthread_t sender;
-
-    unsigned short int orangePort;
     
-    Blue blueNode();
+    unsigned short int orangePort;
+    char* ip;
+     
+    get_args(ip, orangePort, argc, argv);
 
+    Blue blueNode();
+/* 
     int resReceiver = pthread_create(&receiver, NULL, &Blue::receiverHelper, &blueNode);
 
+*/
 
-
-    /*Nunca hacen exit*/
+    /*Nunca hacen exit
 	pthread_join(receiver, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
-	pthread_join(sender, (void**) nullptr);
+	pthread_join(sender, (void**) nullptr);*/
 }

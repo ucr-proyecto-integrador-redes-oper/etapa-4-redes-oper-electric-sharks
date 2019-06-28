@@ -325,7 +325,7 @@ void Orange::beginContention()
 	p->ip = this->orangeSocket->encode_ip(this->myIP);
 	this->putInSendQueue(this, p, SEND_TO_BOTH);
 }
-
+	
 void Orange::createToken(Orange* orange)
 {
 	Packet* token = (Token*) calloc(1, sizeof(Token));
