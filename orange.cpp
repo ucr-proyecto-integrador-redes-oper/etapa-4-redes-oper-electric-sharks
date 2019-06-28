@@ -37,15 +37,15 @@ Orange::~Orange()
 }
 
 void Orange::requestIP(){
-    cout <<"Una vez que todos los nodos naranjas estén corriendo, ingrese el número IP del vecino izquierdo"<<endl;
+   // cout <<"Una vez que todos los nodos naranjas estén corriendo, ingrese el número IP del vecino izquierdo"<<endl;
     bool validIp = true;
-	do{
+	/*do{
 		cin >> this->leftIP;
 		validIp = (bool) validateIP(this->leftIP);
 		if(!validIp)
 			cout << "Direccion IP incorrecta! Ingrese una direccion valida: " << endl;
 	}while(!validIp);
-	
+	*/
     cout <<"Ingrese el número IP del vecino derecho"<<endl;
     do{
 		cin >> this->rightIP;
@@ -395,7 +395,7 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 			}
 		}
 		/*Si el paquete lo recibió por el lado izquierdo, lo reenvía al nodo derecho, y si no al izquierdo.*/
-		currentEntry->sendTo = (currentEntry->receivedFromLeft ? SEND_TO_RIGHT : SEND_TO_LEFT);
+		currentEntry->sendTo = SEND_TO_RIGHT;
 		this->putInSendQueue(this, currentEntry->packet, currentEntry->sendTo);
 		free(currentEntry);
 	}else{
