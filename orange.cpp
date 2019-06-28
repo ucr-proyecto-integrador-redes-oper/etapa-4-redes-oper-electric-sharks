@@ -251,7 +251,7 @@ void Orange::beginContention()
 	InitialToken* p = (InitialToken*) calloc(1, sizeof(InitialToken));
 	p->id = ID::INITIAL_TOKEN;
 	p->ip = this->orangeSocket->encode_ip(this->myIP);
-	this->putInSendQueue(this, p);
+	this->putInSendQueue(this, p, NODE_ORANGE);
 }
 
 void Orange::createToken(Orange* orange)
@@ -373,7 +373,7 @@ void Orange::processToken(Orange* orange, PacketEntry* currentEntry)
 	cout << "recibí el token " << endl;
 	cout << "pasando el token a " << orange->rightIP << endl;
 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	orange->putInSendQueue(orange, token);
+	orange->putInSendQueue(orange, token, NODE_ORANGE);
 }
 
 void Orange::initBlueMap()
@@ -417,22 +417,15 @@ int main(int argc, char* argv[]){
     pthread_t receiverOranges;
     pthread_t receiverBlues;
     pthread_t processer;
-    pthread_t senderOranges;
-    pthread_t senderBlues;
+    pthread_t sender;
     
     OrangeArgs args1;
     OrangeArgs args2;
-    OrangeArgs args3;
-    OrangeArgs args4;
     
     args1.node = &orangeNode;
     args1.commWith = COMM_ORANGE;
     args2.node = &orangeNode;
 	args2.commWith = COMM_BLUE;
-	args3.node = &orangeNode;
-	args3.commWith = COMM_ORANGE;
-	args4.node = &orangeNode;
-	args4.commWith = COMM_BLUE;
 
 	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args1);
 	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args2);
@@ -444,14 +437,12 @@ int main(int argc, char* argv[]){
 
     pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
 	
-	pthread_create(&senderOranges, NULL, &Orange::senderHelper, &args3);
-	pthread_create(&senderBlues, NULL, &Orange::senderHelper, &args4);
+	pthread_create(&sender, NULL, &Orange::senderHelper, &orangeNode);
 	
 	/*Nunca hacen exit*/
 	pthread_join(receiverOranges, (void**) nullptr);
 	pthread_join(receiverBlues, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
-	pthread_join(senderOranges, (void**) nullptr);
-	pthread_join(senderBlues, (void**) nullptr);
+	pthread_join(sender, (void**) nullptr);
 	
 }
