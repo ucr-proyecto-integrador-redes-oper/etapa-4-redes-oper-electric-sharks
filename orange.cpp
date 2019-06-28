@@ -23,7 +23,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	pthread_mutex_init(&this->semOut, nullptr);
 	this->orangeSocket = new Socket(Protocol::UDP);
 	this->blueSocket = new Socket(Protocol::UDP);
-	loadCSV(csv_file, &this->blue_graph);
+	//loadCSV(csv_file, &this->blue_graph);
 	initBlueMap();
 	this->allNodesIP.resize(0);
 }
@@ -204,9 +204,9 @@ void *Orange::processer(Orange* orange){
 				}else{
 					token->assignedPort++;
 				}
-				cout << "yo cree el token? " << std::boolalpha << orange->tokenCreated << endl;
+				/*cout << "yo cree el token? " << std::boolalpha << orange->tokenCreated << endl;
 				cout << "recibí el token # "<< token->assignedPort << " de " << orange->leftIP << endl;
-				cout << "pasando el token a " << orange->rightIP << endl;
+				cout << "pasando el token a " << orange->rightIP << endl;*/
 				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 				orange->putInSendQueue(orange, token, SEND_TO_RIGHT);
 		}
@@ -501,6 +501,8 @@ unsigned long Orange::findMinIP()
 }
 
 int main(int argc, char* argv[]){
+	if(argc < 2)
+		return (cout << "Usage: " << argv[0] << " <num_oranges>" << endl), 0;
     int id;
     unsigned short int orangeInPort;
     unsigned short int orangeOutPort;
@@ -513,7 +515,7 @@ int main(int argc, char* argv[]){
 
 	int resReceiver = pthread_create(&receiver, NULL, &Orange::receiverHelper, &orangeNode);
 	
-	orangeNode.print_graph();
+	//orangeNode.print_graph();
 	
     orangeNode.requestIP();
 	orangeNode.getHostIP();
@@ -525,4 +527,5 @@ int main(int argc, char* argv[]){
 	pthread_join(receiver, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
 	pthread_join(sender, (void**) nullptr);
+	
 }

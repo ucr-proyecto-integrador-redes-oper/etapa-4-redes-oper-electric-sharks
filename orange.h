@@ -18,7 +18,7 @@
 
 #define IP_LEN 16
 #define BUF_SIZE 1024
-#define ORANGE_PORT 11000
+#define ORANGE_PORT 9999
 #define BLUE_PORT 12000
 #define NUM_INTERFACES 4
 #define NUM_ORANGES 2

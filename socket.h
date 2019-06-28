@@ -34,12 +34,12 @@ class Socket{
 		int Sendto(const char *, int, struct in_addr, uint16_t);
 		int Sendto(const char *, int, struct sockaddr_in *);
 		int Recvfrom(char *, int, struct sockaddr_in* = nullptr);
-    int Recvfrom(char *, int, unsigned short = DEF_PORT, struct sockaddr_in* = nullptr);
+		int Recvfrom(char *, int, unsigned short = DEF_PORT, struct sockaddr_in* = nullptr);
 		int Shutdown(int);
 		int Close();
 		
 		///Function that takes an ipv4 address in binary notation and returns it in dots notation.
-		char* decode_ip(unsigned int ip, char* str)
+		static char* decode_ip(unsigned int ip, char* str)
 		{
 			unsigned char bytes[4];
 			bytes[0] = ip & 0xFF;
@@ -50,7 +50,7 @@ class Socket{
 			return str;
 		}
 
-		unsigned int encode_ip(char* ip)
+		static unsigned int encode_ip(char* ip)
 		{
 			struct in_addr ip_addr;
 			inet_aton(ip, &ip_addr);
