@@ -1,5 +1,5 @@
-#ifndef ORANGE_H
-#define ORANGE_H
+#ifndef BLUE_H
+#define BLUE_H
 
 
 #include "packet.h"
@@ -7,15 +7,18 @@
 #include "encoder.h"
 #include "error_handler.h"
 #include "BlueOrange.h"
+#include "secudp.h"
 
 #include <pthread.h>
 #include <queue>
 #include <map>
+#include <vector>
 #include <semaphore.h>
 
 #define BUF_SIZE 1024
 #define IP_LEN 16
 #define ORANGE_PORT 13000
+#define PORT 7050
 
 
 using namespace std;
@@ -30,6 +33,10 @@ class Blue{
     
         pthread_mutex_t semIn;
         pthread_mutex_t semOut;
+        
+        Code coder;
+        reUDP socketSecure;
+        char bufferIP[16];
 
         sem_t InBufferSem;
         sem_t OutBufferSem;
@@ -44,7 +51,7 @@ class Blue{
         Blue(char*, int);
         virtual ~Blue();
         void neighbors(unsigned int,unsigned short int);
-        void sendChunk(char []);
+        void sendChunk(Packet* );
         void putInSendQueue(Blue* blue, Packet* p, int direction);
         static void * receiverHelper(void *context);
         static void * processerHelper(void *context);

@@ -1,6 +1,19 @@
 #include <semaphore.h>
 #include "blue.h"
  
+Blue::Blue(char* orangeIP, int orangePort):socketSecure(PORT)
+{
+    socketSecure.run();
+
+    sem_init(&this->InBufferSem, 0, 0);
+	sem_init(&this->OutBufferSem, 0, 0);
+	pthread_mutex_init(&this->semIn, nullptr);
+	pthread_mutex_init(&this->semOut, nullptr);
+
+    this->orangeIP = orangeIP;
+    this->orangePort = orangePort;
+}
+
 Blue::~Blue()
 {
     sem_destroy(&this->InBufferSem);
@@ -43,13 +56,6 @@ void Blue::neighbors(unsigned int IP,unsigned short int puerto){
 
 }
 
-/** \brief Round robin
- *
- * \param El chunk
- * \param
- * \return
- *
- */
 
 int validateIP(char* ip)
 {
@@ -75,19 +81,30 @@ void get_args(char* &orangeIP, unsigned short int &orangePort, int argc, char **
     }
 }
 
-/*
-void Blue::sendChunk(char chunk[1024]){
+/** \brief Round robin
+ *
+ * \param char
+ * \param
+ * \return
+ *
+ */
+void Blue::sendChunk(Packet* p){
+	char* charPack = nullptr;
     int num_Neighbors = ports_Neighbors.size();
     int pointer_vector = 0;
-
-    if(pointer_vector < num_Neighbors{
+    unsigned short int puerto;
+  
+    charPack = coder.encode(p);
+    if(pointer_vector < num_Neighbors){
       //Envia el chunk al vecino al que este apuntando a ese momento a ip y puerto del mapa
+       puerto = mapNeighbors.find(ports_Neighbors[pointer_vector])->second;
+       socketSecure.Sendto(charPack,Socket::decode_ip(puerto, bufferIP),puerto,Code::findPacketLen(p));
       ++pointer_vector;
     }else{
       pointer_vector = 0;
       //si tiene espacio se deja el chunk porque ya lo envió a todos los vecinos
     }
-}*/
+}
 
 void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
 {	
@@ -98,17 +115,6 @@ void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
 	blue->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&blue->semOut);
 	sem_post(&blue->OutBufferSem);
-}
-
-Blue::Blue(char* orangeIP, int orangePort)
-{
-    sem_init(&this->InBufferSem, 0, 0);
-	sem_init(&this->OutBufferSem, 0, 0);
-	pthread_mutex_init(&this->semIn, nullptr);
-	pthread_mutex_init(&this->semOut, nullptr);
-
-    this->orangeIP = orangeIP;
-    this->orangePort = orangePort;
 }
 
 int main(int argc, char* argv[]){
@@ -122,10 +128,8 @@ int main(int argc, char* argv[]){
     get_args(orangeIP, orangePort, argc, argv);
 
     Blue blueNode(orangeIP,orangePort);
-/* 
+    
     int resReceiver = pthread_create(&receiver, NULL, &Blue::receiverHelper, &blueNode);
-
-*/
 
     /*Nunca hacen exit
 	pthread_join(receiver, (void**) nullptr);
