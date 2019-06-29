@@ -9,6 +9,8 @@
 #include <netinet/ip.h>
 
 #define DEF_PORT 6060
+#define IP_LEN 16
+#define NUM_INTERFACES 4
 
 
 enum Protocol{
@@ -39,23 +41,13 @@ class Socket{
 		int Close();
 		
 		///Function that takes an ipv4 address in binary notation and returns it in dots notation.
-		static char* decode_ip(unsigned int ip, char* str)
-		{
-			unsigned char bytes[4];
-			bytes[0] = ip & 0xFF;
-			bytes[1] = (ip >> 8) & 0xFF;
-			bytes[2] = (ip >> 16) & 0xFF;
-			bytes[3] = (ip >> 24) & 0xFF;   
-			sprintf(str, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);        
-			return str;
-		}
+		static char* decode_ip(unsigned int ip, char* str);
 
-		static unsigned int encode_ip(char* ip)
-		{
-			struct in_addr ip_addr;
-			inet_aton(ip, &ip_addr);
-			return (int) ip_addr.s_addr;
-		}
+		static unsigned int encode_ip(char* ip);
+		
+		static int validateIP(char* ip);
+		
+		static void getHostIP(char* buffer);
 };
 
 #endif

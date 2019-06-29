@@ -20,7 +20,6 @@
 #define BUF_SIZE 1024
 #define ORANGE_PORT 9999
 #define BLUE_PORT 12000
-#define NUM_INTERFACES 4
 #define NUM_ORANGES 2
 #define COMM_ORANGE 10
 #define COMM_BLUE 11
@@ -47,7 +46,7 @@ class Orange{
         queue<PacketEntry*> privateOutBuffer;
         queue<PacketEntry*> sharedInBuffer;
         queue<PacketEntry*> sharedOutBuffer;
-        queue<PacketEntry*> blueRequests;
+        queue<BlueRequest*> blueRequests;
         
         unordered_map<int, list<int>> blue_graph;
         
@@ -69,14 +68,15 @@ class Orange{
         void * processer(Orange*);
         void * sender(Orange*);
         void beginContention();
-        int validateIP(char* ip);
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
         void createToken(Orange*);
         void putInSendQueue(Orange*, Packet*, int destination = NODE_ORANGE);
         void processInitialToken(PacketEntry*);
-        void processToken(Orange*, PacketEntry*);
+        void processEmptyToken(Orange*, PacketEntry*);
+        void processFullRequestToken(Orange*, PacketEntry*);
         void processJoinRequest(Orange*, PacketEntry*);
+        void respondToBlueRequest(Orange*, Token*);
         void initBlueMap();
         int findNextUnassigned(Orange*);
         
@@ -89,8 +89,8 @@ class Orange{
         static void * receiverHelper(void *args);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
+        char* getIP();
         void init();
-        void getHostIP();
         void print_graph();
 };
 

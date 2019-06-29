@@ -142,7 +142,8 @@ char* Code::encode(Packet *pac){
          memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
     break;
 	*/
-
+	default:
+		error_exit(-1, "Encode error: Id desconocido!\n");
     }
 	return c;
 }
@@ -317,8 +318,8 @@ Packet* Code::decode(char *c){
 	*/
 
     }
-    cout << "Invalid id: " << id << endl;
-	return nullptr;
+    error_exit(-1, "Decode error: Id desconocido!\n");
+    return nullptr;
 }
 
 size_t Code::findPacketLen(const Packet* p)
@@ -384,7 +385,7 @@ size_t Code::findPacketLen(const Packet* p)
 		    break;
 		*/
 		default:
-			error_exit(-1, "Id desconocido!\n");
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
 	}
 	return -1;
 }

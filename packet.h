@@ -83,6 +83,16 @@ typedef struct PacketEntry
 	bool receivedFromLeft;
 	int sendTo;
 	int typeNode;
+	unsigned int senderIP;
+	unsigned short int senderPort;
+	unsigned int sendToIP;
+	unsigned short int sendToPort;
 } PacketEntry;
+
+typedef struct BlueRequest
+{
+	unsigned int blueIP;
+	unsigned short bluePort;
+} BlueRequest;
 
 #endif // PACKET_H

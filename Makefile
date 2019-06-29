@@ -5,6 +5,9 @@ orange: orange.o socket.o encoder.o error_handler.o loadCSV.o
 
 warn: orange.o socket.o encoder.o error_handler.o loadCSV.o
 	$(CXX) -Wall -Wextra -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp -pthread
+	
+blue: socket.o encoder.o error_handler.o blue.o
+	$(CXX) -g -o blue.o blue.cpp socket.cpp error_handler.c encoder.cpp -pthread
 
 socket.o: socket.cpp
 	$(CXX) -c socket.cpp
@@ -27,5 +30,6 @@ error_handler.o: error_handler.c
 encoder.o: encoder.cpp
 	$(CXX) -c encoder.cpp
 
+.PHONY clean:
 clean:
-	rm *.o
+	rm -rf *.o
