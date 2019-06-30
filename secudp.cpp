@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#define DEBUG
+//#define DEBUG
 
 reUDP::~reUDP(){
 	sock.Close();

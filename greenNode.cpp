@@ -1,51 +1,71 @@
+#include "packet.h"
 #include "bluePacket.h"
 #include "secudp.h"
+#include "greenNode.h"
+#include "error_handler.h"
+#include "semaphore.h"
 
 #include <cstring>
 #include <cstdio>
+#include <cstdint>
 
+GreenNode::GreenNode(uint16_t port) : socket(port){
+	socket.run();
+}
 
 void GreenNode::send(const char * filename){
-	/*
-	FILE * source = fopen(full_path, "rb"); //Aquí tendremos el puntero a FILE del archivo
+	FILE * source = fopen(filename, "rb");
 	if(source == NULL){
-		error_exit(errno, "Error opening file\n"); //Si hubo algún error le avisamos al usuario y nos salimos del proceso
+		error_exit(errno, "Error opening file\n");
 	}
-
-	buf.mtype = getpid(); //Tomamos como ID el PID del proceso para no tener que hacer que el emisor nos asigne un ID.
-	buf.piece_number = 0;
-	buf.bytes = 0;
-	strcpy(buf.mtext, filename);
-
-	in_queue.send(&buf); //Enviamos el primer paquete con piece_number = 0 para que el receptor sepa que viene un nuevo archivo y cree un thread.
+	
+	BChunk * chunk = new BChunk();
+	chunk->id = ID::BCHUNK;
+	for(int i = 0; i < 3; ++i){ // TEMPORAL
+		chunk->archID[i] = 'a';
+	}
+	chunk->archID[2] = '\0';
+	chunk->chunkNum = 0;
 
 	int read_result;
 	int full_groups;
 	int remainder_bytes;
 	char aux[SIZE];
 	do{
-		read_result = fread((void *) aux, 1, SIZE, source);
-		full_groups = read_result/MSGSIZE;
-		remainder_bytes = read_result%MSGSIZE;
-
-		for(int i = 0; i < full_groups; ++i){
-			memcpy((void *) buf.mtext, (void *) (aux + i*MSGSIZE), MSGSIZE);
-			++buf.piece_number;
-			buf.bytes = MSGSIZE;
-			in_queue.send(&buf);
+		read_result = fread((void *) chunk->chunk, 1, SIZE, source);
+		if(read_result > 0){
+			socket.Sendto((const char *) chunk, "127.0.0.1", 9999, sizeof(BChunk));
+			printf("%d\n", chunk->chunkNum);
+			chunk->chunkNum += 1;
 		}
-		if(remainder_bytes > 0){
-			memcpy((void *) buf.mtext, (void *) (aux+full_groups*MSGSIZE), remainder_bytes);
-			++buf.piece_number;
-			buf.bytes = remainder_bytes;
-			in_queue.send(&buf);
-		}
-
 	} while(read_result);
-	++buf.piece_number;
-	buf.bytes = 0;
-	in_queue.send(&buf); //Enviamos el último paquete con bytes = 0 (y mtype distinto de 0) para que el receptor sepa que ya se terminó el archivo
-
 	fclose(source);
-	*/
+	delete chunk;
+}
+
+void GreenNode::receive(){
+	FILE * source;
+	long expected = 0;
+	BChunk * chunk = new BChunk();
+	while(true){
+		socket.Recvfrom((char *) chunk);
+		source = fopen(chunk->archID, "w+b");
+		printf("%d\n", chunk->chunkNum);
+		fseek(source, chunk->chunkNum * SIZE, SEEK_SET);
+		fwrite((const void *) chunk->chunk, SIZE, 1, source);
+		fclose(source);
+	}
+}
+
+int main(int argc, char * argv[]){
+	Semaphore sem;
+	if(argc > 1){
+		GreenNode gn(2909);
+		gn.send(argv[1]);
+		sem.wait();
+	} else {
+		GreenNode gn(9999);
+		gn.receive();
+	}
+	return 0;
 }
