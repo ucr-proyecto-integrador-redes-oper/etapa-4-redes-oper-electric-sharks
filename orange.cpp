@@ -183,8 +183,12 @@ void *Orange::sender(Orange* orange){
 			size_t packetLen = 0;
 			packetLen = Code::findPacketLen(toSend);
 			/*Envía el paquete a su vecino derecho.*/
-			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, currentEntry->sendTo == NODE_ORANGE? ORANGE_PORT : BLUE_PORT);
-			
+			if(currentEntry->sendTo == NODE_ORANGE){
+			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
+			}else if(currentEntry->sendTo == NODE_BLUE){
+				assert(currentEntry->sendToPort != 0);
+				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, currentEntry->sendToPort);
+			}
 			free(toSend);
             free(currentEntry);
         }
@@ -224,11 +228,12 @@ void Orange::createToken(Orange* orange)
 	orange->putInSendQueue(orange, token);
 }
 
-void Orange::putInSendQueue(Orange* orange, Packet* p, int destination)
+void Orange::putInSendQueue(Orange* orange, Packet* p, int destination, unsigned short int destinationPort)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
 	newPacket->sendTo = destination;
+	newPacket->sendToPort = destinationPort;
 	pthread_mutex_lock(&orange->lockOut);
 	orange->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&orange->lockOut);
@@ -384,7 +389,7 @@ void Orange::respondToBlueRequest(Orange* orange, Token* token)
 			((BOGraphPosition_E*)answer)->nodeID = token->node;
 			((BOGraphPosition_E*)answer)->neighborID = neighbor;
 		}
-		orange->putInSendQueue(orange, answer, NODE_BLUE);
+		orange->putInSendQueue(orange, answer, NODE_BLUE, token->assignedPort);
 	}
 }
 

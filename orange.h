@@ -71,7 +71,7 @@ class Orange{
         void addToIPList(unsigned int ip);
         unsigned long findMinIP();
         void createToken(Orange*);
-        void putInSendQueue(Orange*, Packet*, int destination = NODE_ORANGE);
+        void putInSendQueue(Orange*, Packet*, int destination = NODE_ORANGE, unsigned short int destinationPort = 0);
         void processInitialToken(PacketEntry*);
         void processEmptyToken(Orange*, PacketEntry*);
         void processFullRequestToken(Orange*, PacketEntry*);

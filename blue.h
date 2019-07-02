@@ -6,6 +6,7 @@
 #include "encoder.h"
 #include "error_handler.h"
 #include "BlueOrange.h"
+#include "secudp.h"
 
 #include <pthread.h>
 #include <queue>
@@ -37,12 +38,14 @@ class Blue{
         pthread_mutex_t lockOut;
         
         Socket* socket;
+        reUDP* secSocket;
         Code coder;
 
         sem_t InBufferSem;
         sem_t OutBufferSem;
         
         unsigned short int myGraphID;
+        unsigned short int myPort;
 
         void putInSendQueue(Blue* blue, Packet* p, int direction);
 
@@ -58,9 +61,10 @@ class Blue{
         void * sender(Blue*);
         
         void requestGraphNode(Blue*);
+        void greetNeighbor(Blue*);
 
 	public:
-		Blue(char*);
+		Blue(char*, unsigned short int);
         ~Blue();
         
         char* getIP();

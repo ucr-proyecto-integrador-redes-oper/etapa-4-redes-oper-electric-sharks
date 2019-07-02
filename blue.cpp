@@ -2,13 +2,15 @@
 
 #include "blue.h"
 
-Blue::Blue(char* orangeIPAddr)
+Blue::Blue(char* orangeIPAddr, unsigned short int port)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
 	this->socket = new Socket(Protocol::UDP);
+	this->secSocket = new reUDP(BLUE_PORT);
+	this->myPort = port;
 	memcpy(this->myOrangeIP, orangeIPAddr, IP_LEN);
 }
 
@@ -79,17 +81,20 @@ void *Blue::processer(Blue* blue)
 		assert(currentEntry->packet);
 		
 		/*Hace las diferentes acciones con los paquetes. Por ahora solo trabaja con los paquetes de asignación de nodo del grafo.*/
-		switch(currentEntry->packet->id){
-			case ID::BOGRAPH_POSITION_E:
-				blue->saveNeighbor(blue, currentEntry, false);
-			break;
-			
-			case ID::BOGRAPH_POSITION_N:
-				blue->saveNeighbor(blue, currentEntry, true);
-			break;
-			
-			default:
-				error_exit(-1, "Blue error: Id desconocido!\n");
+		if(static_cast<BlueOrange*>(currentEntry->packet)){
+			switch(currentEntry->packet->id){
+				case ID::BOGRAPH_POSITION_E:
+					blue->saveNeighbor(blue, currentEntry, false);
+				break;
+				
+				case ID::BOGRAPH_POSITION_N:
+					blue->saveNeighbor(blue, currentEntry, true);
+					blue->greetNeighbor(blue);
+				break;
+				
+				default:
+					error_exit(-1, "Blue error: Id desconocido!\n");
+			}
 		}
     }
 }
@@ -224,13 +229,22 @@ void Blue::requestGraphNode(Blue* blue)
 	putInSendQueue(blue, joinRequest, NODE_ORANGE);
 }
 
+void Blue::greetNeighbor(Blue* blue)
+{
+	assert(!blue->mapNeighbors.empty());
+	
+}
+
 int main(int argc, char* argv[]){
-	if(argc < 2)
-		return (cout << "Usage: " << argv[0] << " <orange_IP_addr>" << endl), -1;
+	if(argc < 3)
+		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port>" << endl), -1;
 	if(!Socket::validateIP(argv[1]))
 		error_exit(-1, "Ip inválida!\n");
-	
-	Blue blueNode(argv[1]);
+		
+	unsigned short int bluePort = 0;
+	bluePort = (unsigned short int) atoi(argv[2]);
+	//validar puerto!!
+	Blue blueNode(argv[1], bluePort);
 	
     pthread_t receiverBlues;
     pthread_t receiverOranges;
