@@ -9,6 +9,8 @@
 #include <cstdio>
 #include <cstdint>
 
+#include <sys/stat.h>
+
 GreenNode::GreenNode(uint16_t port) : socket(port){
 	socket.run();
 }
@@ -28,32 +30,33 @@ void GreenNode::send(const char * filename){
 	chunk->chunkNum = 0;
 
 	int read_result;
-	int full_groups;
-	int remainder_bytes;
-	char aux[SIZE];
 	do{
 		read_result = fread((void *) chunk->chunk, 1, SIZE, source);
 		if(read_result > 0){
 			socket.Sendto((const char *) chunk, "127.0.0.1", 9999, sizeof(BChunk));
-			printf("%d\n", chunk->chunkNum);
 			chunk->chunkNum += 1;
 		}
+		memset((void *) chunk->chunk, 0, SIZE);
 	} while(read_result);
+	printf("still going on\n");
 	fclose(source);
 	delete chunk;
 }
 
+struct stat statbuf;
+
 void GreenNode::receive(){
 	FILE * source;
-	long expected = 0;
 	BChunk * chunk = new BChunk();
+	source = fopen("aa", "w");
+	fclose(source);
 	while(true){
 		socket.Recvfrom((char *) chunk);
-		source = fopen(chunk->archID, "w+b");
-		printf("%d\n", chunk->chunkNum);
+		source = fopen(chunk->archID, "r+b");
 		fseek(source, chunk->chunkNum * SIZE, SEEK_SET);
 		fwrite((const void *) chunk->chunk, SIZE, 1, source);
 		fclose(source);
+		printf("still going on\n");
 	}
 }
 

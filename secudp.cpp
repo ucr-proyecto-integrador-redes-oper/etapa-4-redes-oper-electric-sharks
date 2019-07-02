@@ -1,6 +1,7 @@
 #include "secudp.h"
 #include "socket.h"
 #include "semaphore.h"
+#include "bluePacket.h"
 
 #include <unordered_map>
 #include <queue>
@@ -15,8 +16,6 @@
 #include <sys/types.h>
 
 #include <iostream>
-
-//#define DEBUG
 
 reUDP::~reUDP(){
 	sock.Close();
@@ -117,10 +116,13 @@ void reUDP::sender(){
 }
 
 void reUDP::printPacket(const struct data_frame * packet, size_t len){
-	for(int i = 0; i < len; ++i){
+	printf("Size of data_frame is %ld\n", sizeof(struct data_frame));
+	printf("Size of chunk packet is %ld\n", sizeof(BChunk));
+	for(size_t i = 0; i < 3 + len; ++i){
 		if(i % 32 == 0){
-			printf("\n0x%hhx ", i);
+			printf("\n|0x%hhx|\t", (int) i);
 		}
 		printf(" 0x%hhx ", ((char *) packet)[i]);
 	}
+	printf("\n");
 }
