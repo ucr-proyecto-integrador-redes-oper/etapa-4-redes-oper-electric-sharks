@@ -12,6 +12,7 @@ class GreenNode{
 	public:
 		GreenNode(uint16_t = DEFAULT_PORT);
 		void send(const char *);
+		void assembleFile(BChunk *);
 		void receive();
 };
 

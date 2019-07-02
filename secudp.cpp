@@ -69,6 +69,9 @@ void reUDP::receiver(){
 	while(true){
 		struct data_frame * receiver = new struct data_frame();
 		sock.Recvfrom((char *) receiver, sizeof(struct data_frame), &return_addr);
+		#ifdef DEBUG
+			printPacket(receiver, sizeof(struct data_frame));
+		#endif
 		if(!receiver){
 			std::cerr << "Invalid pointer at receiver" << std::endl;
 		}
@@ -77,7 +80,7 @@ void reUDP::receiver(){
 			#ifdef DEBUG
 				printf("Sending ACK with sn: %d to %s::%d\n", receiver->sn, inet_ntoa(return_addr.sin_addr), return_addr.sin_port);
 			#endif
-			sock.Sendto((const char *) receiver, sizeof(struct data_frame), &return_addr);
+			sock.Sendto((const char *) receiver, 3, &return_addr);
 			sem_queue.wait();
 			processed_messages.push(receiver);
 			sem_queue.signal();

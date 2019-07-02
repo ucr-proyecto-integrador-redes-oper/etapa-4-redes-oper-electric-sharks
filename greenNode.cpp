@@ -9,8 +9,6 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <sys/stat.h>
-
 GreenNode::GreenNode(uint16_t port) : socket(port){
 	socket.run();
 }
@@ -43,20 +41,45 @@ void GreenNode::send(const char * filename){
 	delete chunk;
 }
 
-struct stat statbuf;
+void GreenNode::assembleFile(BChunk * chunk){
+	//Agregar codigo para que si no existe, se cree el archivo primero
+	source = fopen(chunk->archID, "r+b");
+	fseek(source, chunk->chunkNum * SIZE, SEEK_SET);
+	fwrite((const void *) chunk->chunk, SIZE, 1, source);
+	fclose(source);
+	printf("still going on\n");
+}
 
 void GreenNode::receive(){
 	FILE * source;
-	BChunk * chunk = new BChunk();
+	char recvPacket[sizeof(BChunk)];
 	source = fopen("aa", "w");
 	fclose(source);
 	while(true){
-		socket.Recvfrom((char *) chunk);
-		source = fopen(chunk->archID, "r+b");
-		fseek(source, chunk->chunkNum * SIZE, SEEK_SET);
-		fwrite((const void *) chunk->chunk, SIZE, 1, source);
-		fclose(source);
-		printf("still going on\n");
+		socket.Recvfrom((char *) recvPacket);
+		#ifdef DEBUG
+			printf("Se recibio un paquete con ID: %c\n", ((Packet *) recvPacket)->id);
+		#endif
+		switch(((Packet *) recvPacket)->id){
+			case 3:
+				printf("yep, %s exists\n", ((BExists_A *) recvPacket)->archID);
+				break;
+			case 5:
+				//printf("yep, complete\n");
+				//El nodo verde deberia de guardar cuantos chunks envio para ver cuantos recibe
+				break;
+			case 7:
+				assembleFile((BChunk *) recvPacket);
+				break;
+			case 9:
+				printf("%s is in %hhd\n", ((BLocate_A *) recvPacket)->archID, ((BLocate_A *) recvPacket)->nodeID);
+				break;
+			#ifdef DEBUG
+			default:
+				printf("I don't care about this types of packages\n");
+				break;
+			#endif 
+		}
 	}
 }
 
