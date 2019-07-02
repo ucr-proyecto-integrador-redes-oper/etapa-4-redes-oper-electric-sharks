@@ -9,11 +9,15 @@
 #include <cstdio>
 #include <cstdint>
 
-GreenNode::GreenNode(uint16_t port) : socket(port){
+GreenNode::GreenNode(uint16_t port, uint8_t greenID) : socket(port){
+	nextFileID.prefix = 000000101;
+	nextFileID.prefix << 5;
+	nextFileID.prefix ||= greenID;
+	nextFileID.localID = 1;
 	socket.run();
 }
 
-void GreenNode::send(const char * filename){
+void GreenNode::sendFile(const char * filename){
 	FILE * source = fopen(filename, "rb");
 	if(source == NULL){
 		error_exit(errno, "Error opening file\n");
@@ -24,11 +28,14 @@ void GreenNode::send(const char * filename){
 	for(int i = 0; i < 3; ++i){ // TEMPORAL
 		chunk->archID[i] = 'a';
 	}
-	chunk->archID[2] = '\0';
 	chunk->chunkNum = 0;
 
 	int read_result;
 	do{
+		for(int i = 0; i < 3; ++i){
+			//chunk->archID[i] = ((uint8_t *) nextFileID)[i];
+		}
+		nextFileID.localID += 1;
 		read_result = fread((void *) chunk->chunk, 1, SIZE, source);
 		if(read_result > 0){
 			socket.Sendto((const char *) chunk, "127.0.0.1", 9999, sizeof(BChunk));
@@ -81,17 +88,4 @@ void GreenNode::receive(){
 			#endif 
 		}
 	}
-}
-
-int main(int argc, char * argv[]){
-	Semaphore sem;
-	if(argc > 1){
-		GreenNode gn(2909);
-		gn.send(argv[1]);
-		sem.wait();
-	} else {
-		GreenNode gn(9999);
-		gn.receive();
-	}
-	return 0;
 }
