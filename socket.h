@@ -21,6 +21,7 @@ class Socket{
 	private:
 		unsigned long udp_port;
 		int sfd; //Socket File Descriptor
+		int type;
 	public:
 	
 		Socket(Protocol p, unsigned long = -1, bool = false);

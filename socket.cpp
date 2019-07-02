@@ -12,7 +12,7 @@ using namespace std;
 
 Socket::Socket(Protocol p, unsigned long udp_port, bool ipv6){
 	int domain = (ipv6 ? AF_INET6 : AF_INET);
-	int type = (p == TCP ? SOCK_STREAM : SOCK_DGRAM);
+	type = (p == TCP ? SOCK_STREAM : SOCK_DGRAM);
 	this->udp_port = (p == UDP ? udp_port : -1);
 	sfd = socket(domain, type, 0);
 	if(sfd == -1){
@@ -166,10 +166,9 @@ int Socket::Recvfrom(char * message, int len, unsigned short port, struct sockad
 	received = recvfrom(sfd, (void *) message, len, 0, (struct sockaddr *) client_addr, &struct_size);
 	return received;
 }
-
 int Socket::Close(){
 	int status;
-	if((status = close(sfd)) == -1){
+	if(type == SOCK_STREAM && (status = close(sfd)) == -1){
 		perror("Error closing socket file descriptor!\n");
 	}
 	return status;
