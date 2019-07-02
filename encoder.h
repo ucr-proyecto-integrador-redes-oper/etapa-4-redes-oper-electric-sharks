@@ -15,8 +15,8 @@ class Code
     public:
         Code();
         ~Code();
-        char* encode(Packet *);
-        Packet* decode(char *, char = PACKET_ORANGE );
+        char* encode(Packet *, int type);
+        Packet* decode(char *, char = PACKET_ORANGE);
         static size_t findPacketLen(Packet* p);
     protected:
     private:

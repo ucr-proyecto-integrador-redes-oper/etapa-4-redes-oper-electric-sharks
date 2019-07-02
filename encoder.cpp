@@ -1,6 +1,8 @@
 #include "encoder.h"
 #include "error_handler.h"
 
+#include <cassert>
+
 #include <iostream>
 using namespace std;
 
@@ -12,58 +14,62 @@ Code::~Code()
 {
     //dtor
 }
-char* Code::encode(Packet *pac){
+char* Code::encode(Packet *pac, int type){
     char *c;
     unsigned char id = pac->id;
     
-    if(static_cast<OrangePacket*>(pac)){
-		switch((unsigned int) id){
-    case static_cast<int>(ID::INITIAL_TOKEN):
-         c = new char[6]();
-         memcpy(c, &pac->id,sizeof(Packet::id));
-         memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
-        break;
-    case static_cast<int>(ID::TOKEN_EMPTY):
-         c = new char[15]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
-         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip),&((Token*)pac)->boolean,sizeof(Token::boolean));
-         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean),&((Token*)pac)->node,sizeof(Token::node));
-         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
-         memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
-        break;
-        default:
-		error_exit(-1, "Encode error: Id desconocido!\n");
-	    }
-    }
-	
-	
-    if(static_cast<BlueOrange*>(pac)){
-		switch((unsigned int) id){
-			 case static_cast<int>(ID::BOJOIN_GRAPH):
-			  c = new char[1]();
-			  memcpy(c,&pac->id,sizeof(Packet::id));
-             break;
-             case static_cast<int>(ID::BOGRAPH_POSITION_E):
-			  c = new char[5]();
-			  memcpy(c,&pac->id,sizeof(Packet::id));
-			  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_E*)pac)->nodeID,sizeof(BOGraphPosition_E::nodeID));
-              memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_E::nodeID),&((BOGraphPosition_E*)pac)->neighborID,sizeof(BOGraphPosition_E::neighborID));
-             break;
-             case static_cast<int>(ID::BOGRAPH_POSITION_N):
-			  c = new char[7]();
-			  memcpy(c,&pac->id,sizeof(Packet::id));
-			  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
-              memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
-             break;
-             case static_cast<int>(ID::BOGRAPH_COMPLETE):
-			  c = new char[1]();
-			  memcpy(c,&pac->id,sizeof(Packet::id));
-             break;
-             default:
-		     error_exit(-1, "Encode error: Id desconocido!\n");
-	    }
-	}
+    switch(type){
+		case NODE_ORANGE:
+			switch((unsigned int) id){
+			case static_cast<int>(ID::INITIAL_TOKEN):
+				 c = new char[6]();
+				 memcpy(c, &pac->id,sizeof(Packet::id));
+				 memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
+			break;
+			case static_cast<int>(ID::TOKEN_EMPTY):
+				 c = new char[15]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
+				 memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip),&((Token*)pac)->boolean,sizeof(Token::boolean));
+				 memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean),&((Token*)pac)->node,sizeof(Token::node));
+				 memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
+				 memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
+			break;
+		}
+		break;
+		
+		case NODE_BLUE:
+			switch((unsigned int) id){
+				 case static_cast<int>(ID::BOJOIN_GRAPH):
+				  c = new char[1]();
+				  memcpy(c,&pac->id,sizeof(Packet::id));
+				 break;
+				 case static_cast<int>(ID::BOGRAPH_POSITION_E):
+				  c = new char[5]();
+				  memcpy(c,&pac->id,sizeof(Packet::id));
+				  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_E*)pac)->nodeID,sizeof(BOGraphPosition_E::nodeID));
+				  memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_E::nodeID),&((BOGraphPosition_E*)pac)->neighborID,sizeof(BOGraphPosition_E::neighborID));
+				 break;
+				 case static_cast<int>(ID::BOGRAPH_POSITION_N):
+				  c = new char[7]();
+				  memcpy(c,&pac->id,sizeof(Packet::id));
+				  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
+				  memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
+				 break;
+				 case static_cast<int>(ID::BOGRAPH_COMPLETE):
+				  c = new char[1]();
+				  memcpy(c,&pac->id,sizeof(Packet::id));
+				 break;
+				 default:
+				 assert(false);
+				 error_exit(-1, "Encode error: Id desconocido!\n");
+			 }
+			break;
+	    
+	    
+	    default:
+			assert(false);
+	}	
 	/*
     case static_cast<int>(ID::BCHUNK):
          c = new char[10262]();
@@ -191,7 +197,7 @@ Packet* Code::decode(char *c, char typePacket){
     //*****************************
 	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
-	if(typePacket == 6){
+	if(typePacket == PACKET_ORANGE){
 		switch((unsigned int) id){
 			case static_cast<int>(ID::INITIAL_TOKEN):
 				orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
@@ -211,7 +217,7 @@ Packet* Code::decode(char *c, char typePacket){
 			break;
 		}
 	}
-	if(typePacket == 9){
+	else if(typePacket == PACKET_BLUE){
 	     switch((unsigned int) id){
 			case static_cast<int>(ID::BOJOIN_GRAPH):
 				BOJoin_Graph = (BOJoinGraph*) calloc(1,sizeof(BOJoinGraph));
@@ -240,7 +246,7 @@ Packet* Code::decode(char *c, char typePacket){
 		}
 		
 	}
-	
+	assert(false);
     error_exit(-1, "Decode error: Id desconocido!\n");
     return nullptr;
 
@@ -366,8 +372,6 @@ size_t Code::findPacketLen(Packet *p)
 			case ID::TOKEN_FULL_AND_REQUEST:
 			return sizeof(Token);
 		break;
-		default:
-			error_exit(-1, "Find packet len error: Id desconocido!\n");
 	}
   }
 	 if(static_cast<BlueOrange*>(p)){

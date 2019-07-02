@@ -8,8 +8,8 @@ orange: orange.o socket.o encoder.o error_handler.o loadCSV.o
 warn: orange.o socket.o encoder.o error_handler.o loadCSV.o
 	$(CXX) -Wall -Wextra -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp -pthread
 	
-blue: socket.o encoder.o error_handler.o blue.o
-	$(CXX) -g -o blue.o blue.cpp socket.cpp error_handler.c encoder.cpp -pthread
+blue: socket.o encoder.o error_handler.o blue.o secudp.o semaphore.o
+	$(CXX) -g -o blue.o blue.cpp socket.cpp error_handler.c encoder.cpp secudp.cpp semaphore.cpp -pthread 
 
 greenNode: greenNode.o secudp.o socket.o semaphore.o error_handler.o
 	$(CXX) $(FLAGS) -pthread greenNode.o secudp.o socket.o semaphore.o error_handler.o -o greenNode

@@ -81,10 +81,12 @@ void *Orange::receiver(Orange* orange, int type){
         currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
         /*Lee del socket*/
 
-        orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, (type == COMM_ORANGE? ORANGE_PORT : BLUE_PORT), &senderAddr);
-        
+		if(type == COMM_BLUE)
+			orange->blueSocket->Recvfrom(buffer, BUF_SIZE, BLUE_PORT, &senderAddr);
+        else
+			orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
         /*Transforma la tira de bytes en un paquete*/
-        currentPacket = coder.decode(buffer);
+        currentPacket = coder.decode(buffer, (type == COMM_BLUE? PACKET_BLUE : PACKET_ORANGE));
         assert(currentPacket);
 		
 		currentEntry->packet = currentPacket;
@@ -178,15 +180,18 @@ void *Orange::sender(Orange* orange){
 			assert(currentEntry);
 			Packet* toSend = currentEntry->packet;
 			orange->privateOutBuffer.pop();
-			rawPacket = coder.encode(toSend);
-			assert(rawPacket);
+			
 			size_t packetLen = 0;
 			packetLen = Code::findPacketLen(toSend);
 			/*Envía el paquete a su vecino derecho.*/
 			if(currentEntry->sendTo == NODE_ORANGE){
+			rawPacket = coder.encode(toSend, NODE_ORANGE);
+			assert(rawPacket);
 			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
 			}else if(currentEntry->sendTo == NODE_BLUE){
 				assert(currentEntry->sendToPort != 0);
+				rawPacket = coder.encode(toSend, NODE_BLUE);
+				assert(rawPacket);
 				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, currentEntry->sendToPort);
 			}
 			free(toSend);
@@ -373,13 +378,14 @@ void Orange::respondToBlueRequest(Orange* orange, Token* token)
 	Packet* answer;
 	
 	/*Un nodo del grafo no puede no tener vecinos.*/
-	assert((orange->blue_graph[token->node]).size() > 0);
+	//assert(orange->blue_graph[token->node].second.size() > 0);
 	
 	/*Para cada vecino que tenga, toma acciones distintas dependiendo de si el vecino ya se instanció o no.*/
 	for(auto neighbor : orange->blue_graph[token->node]){
 		if((orange->blueMapping[neighbor]).first != 0){	//si el vecino está instanciado
 			//toma la dirección ip y puerto del vecino, los mete en un paquete de respuesta y lo manda
 			answer = (BOGraphPosition_N*) calloc(1, sizeof(BOGraphPosition_N));
+			answer->id = 14; 	//cambiar!!
 			((BOGraphPosition_N*)answer)->nodeID = token->node;
 			((BOGraphPosition_N*)answer)->neighborID = neighbor;
 			((BOGraphPosition_N*)answer)->neighborIP = orange->blueMapping[neighbor].first;
@@ -452,7 +458,7 @@ int main(int argc, char* argv[]){
 	pthread_create(&receiverOranges, NULL, &Orange::receiverHelper, &args1);
 	pthread_create(&receiverBlues, NULL, &Orange::receiverHelper, &args2);
 	
-	//orangeNode.print_graph();
+	orangeNode.print_graph();
 	
     orangeNode.requestIP();
 	Socket::getHostIP(orangeNode.getIP());

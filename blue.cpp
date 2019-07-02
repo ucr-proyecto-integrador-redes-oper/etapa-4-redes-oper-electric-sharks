@@ -19,6 +19,7 @@ Blue::~Blue()
     sem_destroy(&this->InBufferSem);
 	sem_destroy(&this->OutBufferSem);
 	delete this->socket;
+	delete this->secSocket;
 }
 /** \brief Agrega vecinos al mapa y sus ip al vector
  *
@@ -38,14 +39,14 @@ void *Blue::sender(Blue* blue){
 			assert(currentEntry);
 			Packet* toSend = currentEntry->packet;
 			blue->privateOutBuffer.pop();
-			rawPacket = coder.encode(toSend);
+			rawPacket = coder.encode(toSend, NODE_BLUE);
 			assert(rawPacket);
 			size_t packetLen = 0;
 			packetLen = Code::findPacketLen(toSend);
 	
 			/*Solo se comunica con su naranja por ahora, hace falta comunicar con otros azules.*/
 			if(currentEntry->sendTo == NODE_ORANGE)
-				blue->socket->Sendto(rawPacket, packetLen, blue->myOrangeIP, ORANGE_PORT);
+				blue->socket->Sendto(rawPacket, packetLen, blue->myOrangeIP, BLUE_PORT);
 			
 			free(toSend);
             free(currentEntry);
