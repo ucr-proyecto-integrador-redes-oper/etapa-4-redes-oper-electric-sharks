@@ -16,7 +16,10 @@
 #define NODE_BLUE 3
 #define NODE_ORANGE 4
 #define NODE_GREEN 5
-
+#define PACKET_ORANGE 6
+#define PACKET_BLUE 7
+#define PACKET_GREEN 8
+#define PACKET_ORANGE_BLUE 9
 #define MAX_PAYLOAD_SIZE 1024
 
 /// Struct with enumerations that identify the packets by their ID field.

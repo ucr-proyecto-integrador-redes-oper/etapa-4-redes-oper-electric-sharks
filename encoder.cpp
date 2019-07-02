@@ -15,8 +15,9 @@ Code::~Code()
 char* Code::encode(Packet *pac){
     char *c;
     unsigned char id = pac->id;
-
-    switch((unsigned int) id){
+    
+    if(static_cast<OrangePacket*>(pac)){
+		switch((unsigned int) id){
     case static_cast<int>(ID::INITIAL_TOKEN):
          c = new char[6]();
          memcpy(c, &pac->id,sizeof(Packet::id));
@@ -31,6 +32,38 @@ char* Code::encode(Packet *pac){
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
         break;
+        default:
+		error_exit(-1, "Encode error: Id desconocido!\n");
+	    }
+    }
+	
+	
+    if(static_cast<BlueOrange*>(pac)){
+		switch((unsigned int) id){
+			 case static_cast<int>(ID::BOJOIN_GRAPH):
+			  c = new char[1]();
+			  memcpy(c,&pac->id,sizeof(Packet::id));
+             break;
+             case static_cast<int>(ID::BOGRAPH_POSITION_E):
+			  c = new char[5]();
+			  memcpy(c,&pac->id,sizeof(Packet::id));
+			  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_E*)pac)->nodeID,sizeof(BOGraphPosition_E::nodeID));
+              memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_E::nodeID),&((BOGraphPosition_E*)pac)->neighborID,sizeof(BOGraphPosition_E::neighborID));
+             break;
+             case static_cast<int>(ID::BOGRAPH_POSITION_N):
+			  c = new char[7]();
+			  memcpy(c,&pac->id,sizeof(Packet::id));
+			  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
+              memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
+             break;
+             case static_cast<int>(ID::BOGRAPH_COMPLETE):
+			  c = new char[1]();
+			  memcpy(c,&pac->id,sizeof(Packet::id));
+             break;
+             default:
+		     error_exit(-1, "Encode error: Id desconocido!\n");
+	    }
+	}
 	/*
     case static_cast<int>(ID::BCHUNK):
          c = new char[10262]();
@@ -86,22 +119,6 @@ char* Code::encode(Packet *pac){
          memcpy(c,&pac->id,sizeof(Packet::id));
          memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
     break;
-    case static_cast<int>(ID::ASSIGNMENT):
-         c = new char[12]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((Assignment*)pac)->nodeID,sizeof(Assignment::nodeID));
-         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID),&((Assignment*)pac)->totalNeighbors,sizeof(Assignment::totalNeighbors));
-         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors),&((Assignment*)pac)->ip,sizeof(Assignment::ip));
-         memcpy(c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors)+sizeof(Assignment::ip),&((Assignment*)pac)->port,sizeof(Assignment::port));
-    break;
-    case static_cast<int>(ID::CONNECT):
-         c = new char[2]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-    break;
-    case static_cast<int>(ID::GO):
-         c = new char[2]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-    break;
     case static_cast<int>(ID::GCHUNK):
          c = new char[10260]();
          memcpy(c,&pac->id,sizeof(Packet::id));
@@ -142,16 +159,19 @@ char* Code::encode(Packet *pac){
          memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
     break;
 	*/
-	default:
-		error_exit(-1, "Encode error: Id desconocido!\n");
-    }
+    
 	return c;
 }
 
-Packet* Code::decode(char *c){
+Packet* Code::decode(char *c, char typePacket){
 	  //Declaracion de cada struct y de ahí accede a los campos de el y de los que hereda*************
     InitialToken *orangeI;
     Token *orangePac;
+    
+    BOJoinGraph *BOJoin_Graph;
+	BOGraphPosition_E *BOGraphPositionE ;
+	BOGraphPosition_N *BOGraphPositionN;
+	BOGraphComplete *BOGraph_Complete;
 	/*
     BChunk *blueC;
     BHello *blueH;
@@ -160,9 +180,7 @@ Packet* Code::decode(char *c){
     BGet *blueG;
     BLocalize *blueL;
     BDelete *blueD;
-    Assignment *blueOrA;
-    Connect *blueOrC;
-    Go *blueOrG;
+    * 
     GChunk *greenC;
     GExist *greenE;
     GComplete *greenCom;
@@ -173,23 +191,59 @@ Packet* Code::decode(char *c){
     //*****************************
 	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
-	switch((unsigned int) id){
-		case static_cast<int>(ID::INITIAL_TOKEN):
-		   orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
-		   memcpy(&orangeI->id, c,sizeof(Packet::id));
-		   memcpy(&orangeI->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
-		   return orangeI;
-		break;
-		case static_cast<int>(ID::TOKEN_EMPTY):
-           orangePac=(Token*) calloc  (1,sizeof(Token));
-		   memcpy(&orangePac->id,c,sizeof(Packet::id));
-		   memcpy(&orangePac->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
-		   memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip),sizeof(Token::boolean));
-		   memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean),sizeof(Token::node));
-		   memcpy(&orangePac->assignedIp,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node),sizeof(Token::assignedIp));
-		   memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));
-           return orangePac;
-		break;
+	if(typePacket == 6){
+		switch((unsigned int) id){
+			case static_cast<int>(ID::INITIAL_TOKEN):
+				orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
+				memcpy(&orangeI->id, c,sizeof(Packet::id));
+				memcpy(&orangeI->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
+				return orangeI;
+			break;
+			case static_cast<int>(ID::TOKEN_EMPTY):
+				orangePac=(Token*) calloc  (1,sizeof(Token));
+				memcpy(&orangePac->id,c,sizeof(Packet::id));
+				memcpy(&orangePac->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
+				memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip),sizeof(Token::boolean));
+				memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean),sizeof(Token::node));
+				memcpy(&orangePac->assignedIp,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node),sizeof(Token::assignedIp));
+				memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));
+				return orangePac;
+			break;
+		}
+	}
+	if(typePacket == 9){
+	     switch((unsigned int) id){
+			case static_cast<int>(ID::BOJOIN_GRAPH):
+				BOJoin_Graph = (BOJoinGraph*) calloc(1,sizeof(BOJoinGraph));
+				memcpy(&BOJoin_Graph->id, c,sizeof(Packet::id));
+				return BOJoin_Graph;
+			break;	
+			case static_cast<int>(ID::BOGRAPH_POSITION_E):
+				BOGraphPositionE = (BOGraphPosition_E*) calloc(1,sizeof(BOGraphPosition_E));
+				memcpy(&BOGraphPositionE->id, c,sizeof(Packet::id));
+				memcpy(&BOGraphPositionE->nodeID,c+sizeof(Packet::id),sizeof(BOGraphPosition_E::nodeID));
+				memcpy(&BOGraphPositionE->neighborID,c+sizeof(Packet::id)+sizeof(BOGraphPosition_E::nodeID),sizeof(BOGraphPosition_E::neighborID));
+				return BOGraphPositionE;
+			break;
+			case static_cast<int>(ID::BOGRAPH_POSITION_N):
+				BOGraphPositionN = (BOGraphPosition_N*) calloc(1,sizeof(BOGraphPosition_N));
+				memcpy(&BOGraphPositionN->id, c,sizeof(Packet::id));
+				memcpy(&BOGraphPositionN->neighborIP,c+sizeof(Packet::id),sizeof(BOGraphPosition_N::neighborIP));
+				memcpy(&BOGraphPositionN->neighborPort,c+sizeof(Packet::id)+sizeof(BOGraphPosition_N::neighborPort),sizeof(BOGraphPosition_N::neighborPort));
+				return BOGraphPositionN;
+			break;
+			case static_cast<int>(ID::BOGRAPH_COMPLETE):
+				BOGraph_Complete = (BOGraphComplete*) calloc(1,sizeof(BOGraphComplete));
+				memcpy(&BOGraph_Complete->id, c,sizeof(Packet::id));
+				return BOGraph_Complete;
+			break;	
+		}
+		
+	}
+	
+    error_exit(-1, "Decode error: Id desconocido!\n");
+    return nullptr;
+
 		/*
 		 case static_cast<int>(ID::BCHUNK):
          blueC=(BChunk*) calloc  (1,sizeof(BChunk));
@@ -251,25 +305,6 @@ Packet* Code::decode(char *c){
          memcpy(&blueD->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
          return blueD;
     break;
-    case static_cast<int>(ID::ASSIGNMENT):
-         blueOrA=(Assignment*) calloc  (1,sizeof(Assignment));
-         memcpy(&blueOrA->id,c,sizeof(Packet::id));
-         memcpy(&blueOrA->nodeID,c+sizeof(Packet::id),sizeof(Assignment::nodeID));
-         memcpy(&blueOrA->totalNeighbors,c+sizeof(Packet::id)+sizeof(Assignment::nodeID),sizeof(Assignment::totalNeighbors));
-         memcpy(&blueOrA->ip,c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors),sizeof(Assignment::ip));
-         memcpy(&blueOrA->port,c+sizeof(Packet::id)+sizeof(Assignment::nodeID)+sizeof(Assignment::totalNeighbors)+sizeof(Assignment::ip),sizeof(Assignment::port));
-         return blueOrA;
-    break;
-    case static_cast<int>(ID::CONNECT):
-         blueOrC=(Connect*) calloc  (1,sizeof(Connect));
-         memcpy(&blueOrC->id,c,sizeof(Packet::id));
-         return blueOrC;
-    break;
-    case static_cast<int>(ID::GO):
-         blueOrG=(Go*) calloc  (1,sizeof(Go));
-         memcpy(&blueOrG->id,c,sizeof(Packet::id));
-         return blueOrG;
-    break;
     case static_cast<int>(ID::GCHUNK):
          greenC=(GChunk*) calloc  (1,sizeof(GChunk));
          memcpy(&greenC->id,c,sizeof(Packet::id));
@@ -316,24 +351,43 @@ Packet* Code::decode(char *c){
          return greenK;
     break;
 	*/
-
-    }
-    error_exit(-1, "Decode error: Id desconocido!\n");
-    return nullptr;
 }
 
-size_t Code::findPacketLen(const Packet* p)
+size_t Code::findPacketLen(Packet *p)
 {
-	switch((unsigned int) p->id){
-		case ID::INITIAL_TOKEN:
+	if(static_cast<OrangePacket*>(p)){
+
+		switch((unsigned int) p->id){
+			case ID::INITIAL_TOKEN:
 			return sizeof(InitialToken);
 		break;
-		
-		case ID::TOKEN_EMPTY:
-		case ID::TOKEN_FULL_AND_COMPLETE:
-		case ID::TOKEN_FULL_AND_REQUEST:
+        case ID::TOKEN_EMPTY:
+			case ID::TOKEN_FULL_AND_COMPLETE:
+			case ID::TOKEN_FULL_AND_REQUEST:
 			return sizeof(Token);
 		break;
+		default:
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
+	}
+  }
+	 if(static_cast<BlueOrange*>(p)){
+		switch((unsigned int) p->id){
+			case ID::BOJOIN_GRAPH:
+			return sizeof(BOJoinGraph);
+		break;
+        case ID::BOGRAPH_POSITION_E:
+			return sizeof(BOGraphPosition_E);
+		break;
+		case ID::BOGRAPH_POSITION_N:
+			return sizeof(BOGraphPosition_N);
+		break;
+		case ID::BOGRAPH_COMPLETE:
+			return sizeof(BOGraphComplete);
+		break;
+		default:
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
+	 }
+   }
 		/*
 		case ID::BCHUNK:
 		    return sizeof(BChunk);
@@ -356,15 +410,6 @@ size_t Code::findPacketLen(const Packet* p)
 		case ID::BDELETE:
 		    return sizeof(BDelete);
 		    break;
-		case ID::ASSIGNMENT:
-		    return sizeof(Assignment);
-		    break;
-		case ID::CONNECT:
-		    return sizeof(Connect);
-		    break;
-		case ID::GO:
-		    return sizeof(Go);
-		    break;
 		case ID::GCHUNK:
 		    return sizeof(GChunk);
 		    break;
@@ -384,8 +429,6 @@ size_t Code::findPacketLen(const Packet* p)
 		    return sizeof(GKill);
 		    break;
 		*/
-		default:
-			error_exit(-1, "Find packet len error: Id desconocido!\n");
-	}
+	
 	return -1;
 }
