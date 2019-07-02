@@ -32,7 +32,10 @@ char* Code::encode(Packet *pac){
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node),&((Token*)pac)->assignedIp,sizeof(Token::assignedIp));
          memcpy(c + sizeof(Packet::id) + sizeof(OrangePacket::ip) + sizeof(Token::boolean) + sizeof(Token::node) + sizeof(Token::assignedIp),&((Token*)pac)->assignedPort,sizeof(Token::assignedPort));
         break;
-	}
+        default:
+		error_exit(-1, "Encode error: Id desconocido!\n");
+	    }
+    }
 	
 	
     if(static_cast<BlueOrange*>(pac)){
@@ -53,10 +56,12 @@ char* Code::encode(Packet *pac){
 			  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
               memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
              break;
-             case static_cast<int>(ID::BOGRAPH_COMPLETE:
+             case static_cast<int>(ID::BOGRAPH_COMPLETE):
 			  c = new char[1]();
 			  memcpy(c,&pac->id,sizeof(Packet::id));
              break;
+             default:
+		     error_exit(-1, "Encode error: Id desconocido!\n");
 	    }
 	}
 	/*
@@ -154,9 +159,7 @@ char* Code::encode(Packet *pac){
          memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
     break;
 	*/
-	default:
-		error_exit(-1, "Encode error: Id desconocido!\n");
-    }
+    
 	return c;
 }
 
@@ -188,7 +191,7 @@ Packet* Code::decode(char *c, char typePacket){
     //*****************************
 	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
-	if(typePacket == 0){
+	if(typePacket == 6){
 		switch((unsigned int) id){
 			case static_cast<int>(ID::INITIAL_TOKEN):
 				orangeI=(InitialToken*) calloc(1,sizeof(InitialToken));
@@ -206,23 +209,41 @@ Packet* Code::decode(char *c, char typePacket){
 				memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));
 				return orangePac;
 			break;
+		}
 	}
-	if(typePacket == 3){
+	if(typePacket == 9){
 	     switch((unsigned int) id){
 			case static_cast<int>(ID::BOJOIN_GRAPH):
-				BOJoin_Graph=(BOJoinGraph*) calloc(1,sizeof(BOJoinGraph));
+				BOJoin_Graph = (BOJoinGraph*) calloc(1,sizeof(BOJoinGraph));
 				memcpy(&BOJoin_Graph->id, c,sizeof(Packet::id));
 				return BOJoin_Graph;
 			break;	
 			case static_cast<int>(ID::BOGRAPH_POSITION_E):
-				BOGraphPositionE=(BOJoinGraph*) calloc(1,sizeof(BOJoinGraph));
+				BOGraphPositionE = (BOGraphPosition_E*) calloc(1,sizeof(BOGraphPosition_E));
 				memcpy(&BOGraphPositionE->id, c,sizeof(Packet::id));
 				memcpy(&BOGraphPositionE->nodeID,c+sizeof(Packet::id),sizeof(BOGraphPosition_E::nodeID));
 				memcpy(&BOGraphPositionE->neighborID,c+sizeof(Packet::id)+sizeof(BOGraphPosition_E::nodeID),sizeof(BOGraphPosition_E::neighborID));
 				return BOGraphPositionE;
 			break;
+			case static_cast<int>(ID::BOGRAPH_POSITION_N):
+				BOGraphPositionN = (BOGraphPosition_N*) calloc(1,sizeof(BOGraphPosition_N));
+				memcpy(&BOGraphPositionN->id, c,sizeof(Packet::id));
+				memcpy(&BOGraphPositionN->neighborIP,c+sizeof(Packet::id),sizeof(BOGraphPosition_N::neighborIP));
+				memcpy(&BOGraphPositionN->neighborPort,c+sizeof(Packet::id)+sizeof(BOGraphPosition_N::neighborPort),sizeof(BOGraphPosition_N::neighborPort));
+				return BOGraphPositionN;
+			break;
+			case static_cast<int>(ID::BOGRAPH_COMPLETE):
+				BOGraph_Complete = (BOGraphComplete*) calloc(1,sizeof(BOGraphComplete));
+				memcpy(&BOGraph_Complete->id, c,sizeof(Packet::id));
+				return BOGraph_Complete;
+			break;	
+		}
 		
 	}
+	
+    error_exit(-1, "Decode error: Id desconocido!\n");
+    return nullptr;
+
 		/*
 		 case static_cast<int>(ID::BCHUNK):
          blueC=(BChunk*) calloc  (1,sizeof(BChunk));
@@ -330,15 +351,11 @@ Packet* Code::decode(char *c, char typePacket){
          return greenK;
     break;
 	*/
-
-    }
-    error_exit(-1, "Decode error: Id desconocido!\n");
-    return nullptr;
 }
 
-size_t Code::findPacketLen(const Packet* p)
+size_t Code::findPacketLen(Packet *p)
 {
-	if(static_cast<OrangePacket*>(pac)){
+	if(static_cast<OrangePacket*>(p)){
 
 		switch((unsigned int) p->id){
 			case ID::INITIAL_TOKEN:
@@ -349,10 +366,13 @@ size_t Code::findPacketLen(const Packet* p)
 			case ID::TOKEN_FULL_AND_REQUEST:
 			return sizeof(Token);
 		break;
+		default:
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
 	}
-	 if(static_cast<BlueOrange*>(pac)){
+  }
+	 if(static_cast<BlueOrange*>(p)){
 		switch((unsigned int) p->id){
-			case ID::BOJOIN_GRAPH
+			case ID::BOJOIN_GRAPH:
 			return sizeof(BOJoinGraph);
 		break;
         case ID::BOGRAPH_POSITION_E:
@@ -364,7 +384,10 @@ size_t Code::findPacketLen(const Packet* p)
 		case ID::BOGRAPH_COMPLETE:
 			return sizeof(BOGraphComplete);
 		break;
+		default:
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
 	 }
+   }
 		/*
 		case ID::BCHUNK:
 		    return sizeof(BChunk);
@@ -406,8 +429,6 @@ size_t Code::findPacketLen(const Packet* p)
 		    return sizeof(GKill);
 		    break;
 		*/
-		default:
-			error_exit(-1, "Find packet len error: Id desconocido!\n");
-	}
+	
 	return -1;
 }
