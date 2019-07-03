@@ -27,6 +27,8 @@ char* Code::encode(Packet *pac, int type){
 				 memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
 			break;
 			case static_cast<int>(ID::TOKEN_EMPTY):
+			case static_cast<int>(ID::TOKEN_FULL_AND_REQUEST):
+			case static_cast<int>(ID::TOKEN_FULL_AND_COMPLETE):
 				 c = new char[15]();
 				 memcpy(c,&pac->id,sizeof(Packet::id));
 				 memcpy(c + sizeof(Packet::id),&((OrangePacket*)pac)->ip,sizeof(OrangePacket::ip));
@@ -206,10 +208,12 @@ Packet* Code::decode(char *c, char typePacket){
 				return orangeI;
 			break;
 			case static_cast<int>(ID::TOKEN_EMPTY):
+			case static_cast<int>(ID::TOKEN_FULL_AND_REQUEST):
+			case static_cast<int>(ID::TOKEN_FULL_AND_COMPLETE):
 				orangePac=(Token*) calloc  (1,sizeof(Token));
 				memcpy(&orangePac->id,c,sizeof(Packet::id));
 				memcpy(&orangePac->ip,c+sizeof(Packet::id),sizeof(OrangePacket::ip));
-				memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip),sizeof(Token::boolean));
+				memcpy(&orangePac->boolean,c+sizeof(Packet::id)+sizeof(OrangePacket::ip),sizeof(Token::boolean));
 				memcpy(&orangePac->node,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean),sizeof(Token::node));
 				memcpy(&orangePac->assignedIp,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node),sizeof(Token::assignedIp));
 				memcpy(&orangePac->assignedPort,c+sizeof(Packet::id)+sizeof(OrangePacket::ip)+sizeof(Token::boolean)+sizeof(Token::node)+sizeof(Token::assignedIp),sizeof(Token::assignedPort));

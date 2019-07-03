@@ -8,7 +8,8 @@ Blue::Blue(char* orangeIPAddr, unsigned short int port)
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
-	this->socket = new Socket(Protocol::UDP);
+	this->orangeSocket = new Socket(Protocol::UDP);
+	this->blueSocket = new Socket(Protocol::UDP);
 	this->secSocket = new reUDP(BLUE_PORT);
 	this->myPort = port;
 	memcpy(this->myOrangeIP, orangeIPAddr, IP_LEN);
@@ -18,7 +19,8 @@ Blue::~Blue()
 {
     sem_destroy(&this->InBufferSem);
 	sem_destroy(&this->OutBufferSem);
-	delete this->socket;
+	delete this->orangeSocket;
+	delete this->blueSocket;
 	delete this->secSocket;
 }
 /** \brief Agrega vecinos al mapa y sus ip al vector
@@ -46,7 +48,7 @@ void *Blue::sender(Blue* blue){
 	
 			/*Solo se comunica con su naranja por ahora, hace falta comunicar con otros azules.*/
 			if(currentEntry->sendTo == NODE_ORANGE)
-				blue->socket->Sendto(rawPacket, packetLen, blue->myOrangeIP, BLUE_PORT);
+				blue->orangeSocket->Sendto(rawPacket, packetLen, blue->myOrangeIP, BLUE_PORT);
 			
 			free(toSend);
             free(currentEntry);
@@ -113,10 +115,12 @@ void *Blue::receiver(Blue* blue, int type){
         currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
         /*Lee del socket*/
 
-        blue->socket->Recvfrom(buffer, BUF_SIZE, (type == COMM_ORANGE? ORANGE_PORT : BLUE_PORT), &senderAddr);
-        
+       if(type == COMM_BLUE)
+			blue->blueSocket->Recvfrom(buffer, BUF_SIZE, BLUE_PORT, &senderAddr);
+        else
+			blue->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
         /*Transforma la tira de bytes en un paquete*/
-        currentPacket = coder.decode(buffer);
+        currentPacket = coder.decode(buffer, (type == COMM_BLUE? PACKET_BLUE : PACKET_ORANGE));
         assert(currentPacket);
 		
 		currentEntry->packet = currentPacket;
@@ -171,6 +175,9 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 	blue->myGraphID = ((BOGraphPosition_E*) packet)->nodeID;
 	
 	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
+	
+	cout << "Guardando asignación: nodo del grafo: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
+	
 	//Mapa de puerto con ip de cada vecino
 	if(instantiated){
 		unsigned int neighborIP = ((BOGraphPosition_N*)packet)->neighborIP;

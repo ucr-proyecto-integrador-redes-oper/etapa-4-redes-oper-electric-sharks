@@ -37,7 +37,8 @@ class Blue{
         pthread_mutex_t lockIn;
         pthread_mutex_t lockOut;
         
-        Socket* socket;
+        Socket* orangeSocket;
+        Socket* blueSocket;
         reUDP* secSocket;
         Code coder;
 

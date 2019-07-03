@@ -185,14 +185,16 @@ void *Orange::sender(Orange* orange){
 			packetLen = Code::findPacketLen(toSend);
 			/*Envía el paquete a su vecino derecho.*/
 			if(currentEntry->sendTo == NODE_ORANGE){
-			rawPacket = coder.encode(toSend, NODE_ORANGE);
-			assert(rawPacket);
-			orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
+				rawPacket = coder.encode(toSend, NODE_ORANGE);
+				assert(rawPacket);
+				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, ORANGE_PORT);
 			}else if(currentEntry->sendTo == NODE_BLUE){
 				assert(currentEntry->sendToPort != 0);
 				rawPacket = coder.encode(toSend, NODE_BLUE);
 				assert(rawPacket);
-				orange->orangeSocket->Sendto(rawPacket, packetLen, orange->rightIP, currentEntry->sendToPort);
+				char buffer[IP_LEN];
+				cout << "Respondiendo solicitud de azul al puerto: " << currentEntry->sendToPort << endl;
+				orange->orangeSocket->Sendto(rawPacket, packetLen, Socket::decode_ip(currentEntry->sendToIP, buffer), currentEntry->sendToPort);
 			}
 			free(toSend);
             free(currentEntry);
@@ -233,11 +235,12 @@ void Orange::createToken(Orange* orange)
 	orange->putInSendQueue(orange, token);
 }
 
-void Orange::putInSendQueue(Orange* orange, Packet* p, int destination, unsigned short int destinationPort)
+void Orange::putInSendQueue(Orange* orange, Packet* p, int destination, unsigned int destinationIP, unsigned short int destinationPort)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
 	newPacket->sendTo = destination;
+	newPacket->sendToIP = destinationIP;
 	newPacket->sendToPort = destinationPort;
 	pthread_mutex_lock(&orange->lockOut);
 	orange->privateOutBuffer.push(newPacket);
@@ -314,11 +317,13 @@ void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 		if(newAssignment == -1){
 			error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
 		}
-		
+		token->id = ID::TOKEN_FULL_AND_REQUEST;
 		token->node = newAssignment;
 		token->assignedIp = request->blueIP;
 		token->assignedPort = request->bluePort;
 		orange->tokenOccupied = true;
+		
+		orange->blueMapping[newAssignment] = make_pair(request->blueIP, request->bluePort);
 		char buffer[IP_LEN];
 		cout << "Se cargó asignación de nodo del grafo: " << newAssignment << " al azul en: " << Socket::decode_ip(request->blueIP, buffer) << ":" << request->bluePort << endl; 
 		free(request);
@@ -339,25 +344,28 @@ void Orange::processFullRequestToken(Orange* orange, PacketEntry* currentEntry)
 	Token* token = (Token*) currentEntry->packet;
 	//si fue el mismo quien lo ocupó, lo libera y limpia la información de la asignación
 	if(orange->tokenOccupied){
+		token->id = ID::TOKEN_EMPTY;
 		orange->tokenOccupied = false;
 		token->boolean = false;
 		token->assignedIp = 0;
 		token->assignedPort = 0;
 	}else{
 	//sino, anota la asignacion en su tabla local
-		auto node = orange->blueMapping.find(token->node);
+		try{
+			orange->blueMapping.at(token->node);
+		}catch(exception &e){
+			cerr << "El nodo " << token->node << " no existe en el grafo! " << endl;
+			assert(false);
+		}
 
 		/*Crea un par con la id y puerto de la asignación en el token, y se los asocia al nodo del grafo
 		 * indicado en el campo token->node.*/
-		if(node != orange->blueMapping.end()){
-			char buffer[IP_LEN];
-			cout << "Anotando asignación azul:\nNodo del grafo: " << token->node << "\nIP: " << Socket::decode_ip(token->assignedIp, buffer)\
-			<< "\nPuerto: " << token->assignedPort << endl;
-			orange->blueMapping[token->node] = make_pair(token->assignedIp, token->assignedPort);
-		}
-		else
-			assert(false); //no debe ocurrir;
+		char buffer[IP_LEN];
+		cout << "Anotando asignación azul:\nNodo del grafo: " << token->node << "\nIP: " << Socket::decode_ip(token->assignedIp, buffer)\
+		<< "\nPuerto: " << token->assignedPort << endl;
+		orange->blueMapping[token->node] = make_pair(token->assignedIp, token->assignedPort);
 	}
+	orange->putInSendQueue(orange, token, NODE_ORANGE);
 }
 
 void Orange::processJoinRequest(Orange* orange, PacketEntry* currentEntry)
@@ -378,42 +386,43 @@ void Orange::respondToBlueRequest(Orange* orange, Token* token)
 	Packet* answer;
 	
 	/*Un nodo del grafo no puede no tener vecinos.*/
-	//assert(orange->blue_graph[token->node].second.size() > 0);
+	assert(orange->blue_graph[token->node].size() > 0);
 	
 	/*Para cada vecino que tenga, toma acciones distintas dependiendo de si el vecino ya se instanció o no.*/
 	for(auto neighbor : orange->blue_graph[token->node]){
-		if((orange->blueMapping[neighbor]).first != 0){	//si el vecino está instanciado
+		if(orange->blueMapping[neighbor].first != 0){	//si el vecino está instanciado
 			//toma la dirección ip y puerto del vecino, los mete en un paquete de respuesta y lo manda
 			answer = (BOGraphPosition_N*) calloc(1, sizeof(BOGraphPosition_N));
-			answer->id = 14; 	//cambiar!!
+			answer->id = ID::BOJOIN_GRAPH;
 			((BOGraphPosition_N*)answer)->nodeID = token->node;
 			((BOGraphPosition_N*)answer)->neighborID = neighbor;
 			((BOGraphPosition_N*)answer)->neighborIP = orange->blueMapping[neighbor].first;
 			((BOGraphPosition_N*)answer)->neighborPort = orange->blueMapping[neighbor].second;	
 		}else{ //si el vecino no está instanciado, solo toma la id del nodo y de su vecino, y las manda
 			answer = (BOGraphPosition_E*) calloc(1, sizeof(BOGraphPosition_E));
+			answer->id = ID::BOJOIN_GRAPH;
 			((BOGraphPosition_E*)answer)->nodeID = token->node;
 			((BOGraphPosition_E*)answer)->neighborID = neighbor;
 		}
-		orange->putInSendQueue(orange, answer, NODE_BLUE, token->assignedPort);
+		orange->putInSendQueue(orange, answer, NODE_BLUE, token->assignedIp, token->assignedPort);
 	}
 }
 
 void Orange::initBlueMap()
 {
 	for(auto node : this->blue_graph){
+		/*Llena el mapa secundario con id de nodos, sin ip ni puerto asociados por el momento.*/
 		this->blueMapping[(unsigned short) node.first] = make_pair(0, 0);
 	}
 }
 
 int Orange::findNextUnassigned(Orange* orange)
 {
-	int nextFree = -1;
 	for(auto node : orange->blueMapping)
 		if(node.second.first == 0 && node.second.second == 0)
-			nextFree = node.first;
+			return node.first;
 	
-	return nextFree;
+	return -1;
 }
 
 unsigned long Orange::findMinIP()

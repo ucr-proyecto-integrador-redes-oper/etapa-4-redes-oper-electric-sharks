@@ -8,23 +8,18 @@
 
 using namespace std;
 
-void parseCSV(std::string str, std::unordered_map<int, std::list<int>> * mmap){
+void parseCSV(std::string str, std::list<int> &list){
 	int s = 0;
 	unsigned long f = 0;
-	std::list<int> * aux = new std::list<int>();
 	while(f != std::string::npos){
 		f = str.find(',', s);
 		if(f != std::string::npos){
-			aux->push_back(std::stoi(str.substr(s, f - s)));
+			list.push_back(std::stoi(str.substr(s, f - s)));
 			s = f + 1;
 		} else {
-			aux->push_back(std::stoi(str.substr(s, str.size() - s)));
+			list.push_back(std::stoi(str.substr(s, str.size() - s)));
 		}
 	}
-	auto it = aux->begin();
-	++it;
-	aux->splice((*mmap)[aux->front()].begin(), *aux, it, aux->end());
-	delete aux;
 }
 
 void loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mmap){
@@ -34,11 +29,12 @@ void loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mma
 		error_exit(-1, "No se pudo abrir el archivo csv!\n");
 		return; 
 	}
-	int i = 0;
+	int i = 1;
 	while(fs){
+		mmap->emplace(i, std::list<int>());
 		fs >> str;
 		if(str.size() > 0){
-			parseCSV(str, mmap);
+			parseCSV(str, mmap->at(i));
 		}
 		str.clear();
 		++i;
