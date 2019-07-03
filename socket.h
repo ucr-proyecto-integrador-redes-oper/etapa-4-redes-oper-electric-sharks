@@ -31,7 +31,7 @@ class Socket{
 		int Read(char *, int);
 		int Write(const char *, int);
 		int Listen(int = SOMAXCONN);
-		int Bind(long);
+		int Bind(uint16_t);
 		Socket * Accept();
 		int Sendto(const char *, int, const char *, int = DEF_PORT);
 		int Sendto(const char *, int, struct in_addr, uint16_t);

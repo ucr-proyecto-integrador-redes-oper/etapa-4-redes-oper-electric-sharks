@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <queue>
+#include <utility>
 
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -41,21 +42,18 @@ class reUDP{
 		uint16_t sn;
 		Socket sock;
 		std::unordered_map<uint16_t, struct map_entry *> sent; // Map that uses the sn as a key
-		std::queue<struct data_frame *> processed_messages;
+		std::queue<std::pair<struct data_frame *, struct sockaddr_in *>> processed_messages;
 		Semaphore sem_recv;
 		Semaphore sem_map;
 		Semaphore sem_queue;
 		void receiver();
 		void sender();
 	public:
-		reUDP(uint16_t port) : sock(UDP, port), sem_map(1), sem_queue(1) {
-			srand(time(NULL));
-			sn = rand() % UINT16_MAX;
-		}
+		reUDP(uint16_t);
 		~reUDP();
 		void run();
 		void Sendto(const char *, const char *, uint16_t, size_t = PAYLOAD_SIZE);
-		void Recvfrom(char *);
+		void Recvfrom(char *, struct sockaddr_in * = nullptr);
 		void printPacket(const struct data_frame *, size_t);
 };
 

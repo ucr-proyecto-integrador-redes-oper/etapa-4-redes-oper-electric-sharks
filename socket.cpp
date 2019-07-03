@@ -70,7 +70,7 @@ int Socket::Listen(int queue){
 	return status;
 }
 
-int Socket::Bind(long port){
+int Socket::Bind(uint16_t port){
 	int status;
 	struct sockaddr_in server_addr;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);

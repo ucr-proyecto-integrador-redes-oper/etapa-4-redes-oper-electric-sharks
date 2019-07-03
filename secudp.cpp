@@ -4,6 +4,7 @@
 #include "bluePacket.h"
 
 #include <unordered_map>
+#include <utility>
 #include <queue>
 #include <thread>
 #include <chrono>
@@ -16,6 +17,12 @@
 #include <sys/types.h>
 
 #include <iostream>
+
+reUDP::reUDP(uint16_t port) : sock(UDP, port), sem_map(1), sem_queue(1) {
+	srand(time(NULL));
+	sn = rand() % UINT16_MAX;
+	sock.Bind(port);
+}
 
 reUDP::~reUDP(){
 	sock.Close();
@@ -49,43 +56,53 @@ void reUDP::Sendto(const char * message, const char * destination, uint16_t port
 	sn += 1;
 }
 
-void reUDP::Recvfrom(char * message){
+void reUDP::Recvfrom(char * message, struct sockaddr_in * addr){
 	sem_recv.wait();
+	std::pair<struct data_frame *, struct sockaddr_in *> myPair;
 	if(processed_messages.size() > 0){
 		sem_queue.wait();
-		struct data_frame * received_msg = processed_messages.front();
+		myPair = processed_messages.front();
+		//struct data_frame * received_msg = processed_messages.front();
 		processed_messages.pop();
 		sem_queue.signal();
-		memcpy((void *) message, (const void *) received_msg->payload, PAYLOAD_SIZE);
-		delete received_msg;
-		received_msg = nullptr;
+		memcpy((void *) message, (const void *) myPair.first->payload, PAYLOAD_SIZE);
+		if(addr){
+			memcpy((void *) addr, (const void *) myPair.second, sizeof(struct sockaddr_in));
+		}
+		delete myPair.first;
+		delete myPair.second;
 	} else { 
 		std::cerr << "somehow empty" << std::endl;
 	}
 }
 
 void reUDP::receiver(){
-	struct sockaddr_in return_addr;
+	struct sockaddr_in * return_addr;
+	struct data_frame * receiver = new struct data_frame();
 	while(true){
-		struct data_frame * receiver = new struct data_frame();
-		sock.Recvfrom((char *) receiver, sizeof(struct data_frame), &return_addr);
+		return_addr = new struct sockaddr_in();
+		receiver = new struct data_frame();
+		sock.Recvfrom((char *) receiver, sizeof(struct data_frame), return_addr);
+		#ifdef DEBUG
+			printPacket(receiver, sizeof(struct data_frame));
+		#endif
 		if(!receiver){
 			std::cerr << "Invalid pointer at receiver" << std::endl;
 		}
 		if(receiver->type == 0){
 			receiver->type = 1;
 			#ifdef DEBUG
-				printf("Sending ACK with sn: %d to %s::%d\n", receiver->sn, inet_ntoa(return_addr.sin_addr), return_addr.sin_port);
+				printf("Sending ACK with sn: %d to %s::%d\n", receiver->sn, inet_ntoa(return_addr->sin_addr), return_addr->sin_port);
 			#endif
-			sock.Sendto((const char *) receiver, sizeof(struct data_frame), &return_addr);
+			sock.Sendto((const char *) receiver, 3, return_addr);
 			sem_queue.wait();
-			processed_messages.push(receiver);
+			processed_messages.push(std::pair<struct data_frame *, struct sockaddr_in *>(receiver, return_addr));
 			sem_queue.signal();
 			sem_recv.signal();
 		} else {
 			if(sent.count(receiver->sn)){
 				#ifdef DEBUG
-					printf("Received ACK with sn: %d from %s::%d\n", receiver->sn, inet_ntoa(return_addr.sin_addr), return_addr.sin_port);
+					printf("Received ACK with sn: %d from %s::%d\n", receiver->sn, inet_ntoa(return_addr->sin_addr), return_addr->sin_port);
 				#endif
 				sem_map.wait();
 				delete sent[receiver->sn]->direc;
