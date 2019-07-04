@@ -62,111 +62,99 @@ char* Code::encode(Packet *pac, int type){
 				  c = new char[1]();
 				  memcpy(c,&pac->id,sizeof(Packet::id));
 				 break;
+				 case static_cast<int>(ID::BCHUNK):
+				 c = new char[1032]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c + sizeof(Packet::id),&((BChunk*)pac)->archID[3],sizeof(BChunk::archID[3]));
+				 memcpy(c + sizeof(Packet::id)+sizeof(BChunk::archID[3]),&((BChunk*)pac)->chunkNum,sizeof(BChunk::chunkNum));
+				 memcpy(c + sizeof(Packet::id)+sizeof(BChunk::archID[3]) + sizeof(BChunk::chunkNum),&((BChunk*)pac)->chunk[MAX_PAYLOAD_SIZE],sizeof(BChunk::chunk[MAX_PAYLOAD_SIZE]));
+			 break;	
+			 case static_cast<int>(ID::BHELLO):
+				 c = new char[3]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BHello*)pac)->nodeID,sizeof(BHello::nodeID));
+			 break;
+			 case static_cast<int>(ID::BEXISTS_R):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+			 break;
+			 case static_cast<int>(ID::BEXISTS_A):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+			 break;
+			 case static_cast<int>(ID::BCOMPLETE_R):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+             break;
+             case static_cast<int>(ID::BCOMPLETE_A):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+             break;
+             case static_cast<int>(ID::BGET_A):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+             break;
+             case static_cast<int>(ID::BGET_R):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+             break;
+             case static_cast<int>(ID::BLOCATE_A):
+				 c = new char[6]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BLocate_A*)pac)->nodeID,sizeof(BLocate_A::nodeID));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BLocate_A::nodeID),&((BLocate_A*)pac)->archID[3],sizeof(BLocate_A::archID[3]));
+             break;
+             case static_cast<int>(ID::BLOCATE_R):
+				 c = new char[8]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BExist_R*)pac)->archID[3],sizeof(BExist_R::archID[3]));
+				 memcpy(c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),&((BExist_R*)pac)->chunkNum,sizeof(BExist_R::chunkNum));
+             break;
+             case static_cast<int>(ID::BDELETE):
+				 c = new char[4]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BDelete*)pac)->archID[3],sizeof(BDelete::archID[3]));
+             break;
+             case static_cast<int>(ID::BJOIN_TREE):
+				 c = new char[3]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BHello*)pac)->nodeID,sizeof(BHello::nodeID));
+             break;
+             case static_cast<int>(ID::BIDO):
+				 c = new char[3]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BHello*)pac)->nodeID,sizeof(BHello::nodeID));
+             break;
+             case static_cast<int>(ID::BIDONOT):
+				 c = new char[3]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BHello*)pac)->nodeID,sizeof(BHello::nodeID));
+             break;
+             case static_cast<int>(ID::BDADDY):
+                 c = new char[3]();
+				 memcpy(c,&pac->id,sizeof(Packet::id));
+				 memcpy(c+sizeof(Packet::id),&((BHello*)pac)->nodeID,sizeof(BHello::nodeID));
+             break;
 				 default:
 				 assert(false);
 				 error_exit(-1, "Encode error: Id desconocido!\n");
 			 }
 			break;
-	    
-	    
 	    default:
 			assert(false);
 	}	
-	/*
-    case static_cast<int>(ID::BCHUNK):
-         c = new char[10262]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c + sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BChunk*)pac)->totalChunks,sizeof(BChunk::totalChunks));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks),&((BChunk*)pac)->chunkNumber,sizeof(BChunk::chunkNumber));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks) + sizeof(BChunk::chunkNumber),&((BChunk*)pac)->data[10240],sizeof(BChunk::data[10240]));
-         memcpy(c + sizeof(Packet::id)+sizeof(BluePacket::name[10]) + sizeof(BChunk::totalChunks) + sizeof(BChunk::chunkNumber) + sizeof(BChunk::data[10240]),&((BChunk*)pac)->hops,sizeof(BChunk::hops));
-        break;
-    case static_cast<int>(ID::BHELLO):
-         c = new char[14]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BHello*)pac)->node,sizeof(BHello::node));
-    break;
-    case static_cast<int>(ID::BEXIST):
-         c = new char[14]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BExist*)pac)->question,sizeof(BExist::question));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BExist::question),&((BExist*)pac)->exist,sizeof(BExist::exist));
-    break;
-    case static_cast<int>(ID::BCOMPLETE):
-         c = new char[21]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BComplete*)pac)->totalChunks,sizeof(BComplete::totalChunks));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks),&((BComplete*)pac)->question,sizeof(BComplete::question));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks)+sizeof(BComplete::question),&((BComplete*)pac)->chunkNumber,sizeof(BComplete::chunkNumber));
-    break;
-    case static_cast<int>(ID::BGET):
-         c = new char[10261]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BGet*)pac)->totalChunks,sizeof(BGet::totalChunks));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks),&((BGet*)pac)->question,sizeof(BGet::question));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question),&((BGet*)pac)->chunkNumber,sizeof(BGet::chunkNumber));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::chunkNumber),&((BGet*)pac)->chunk[10240],sizeof(BGet::chunk[10240]));
-    break;
-    case static_cast<int>(ID::BLOCALIZE):
-         c = new char[23]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),&((BLocalize*)pac)->question,sizeof(BLocalize::question));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question),&((BLocalize*)pac)->ip,sizeof(BLocalize::ip));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip),&((BLocalize*)pac)->port,sizeof(BLocalize::port));
-         memcpy(c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip)+sizeof(BLocalize::port),&((BLocalize*)pac)->chunkNumber,sizeof(BLocalize::chunkNumber));
-
-    break;
-    case static_cast<int>(ID::BDELETE):
-         c = new char[21]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((BluePacket*)pac)->name[10],sizeof(BluePacket::name[10]));
-    break;
-    case static_cast<int>(ID::GCHUNK):
-         c = new char[10260]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GChunk*)pac)->totalChunks,sizeof(GChunk::totalChunks));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GChunk::totalChunks),&((GChunk*)pac)->data[10240],sizeof(GChunk::data[10240]));
-    break;
-    case static_cast<int>(ID::GEXIST):
-         c = new char[13]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GExist*)pac)->exist,sizeof(GExist::exist));
-    break;
-    case static_cast<int>(ID::GCOMPLETE):
-         c = new char[13]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GComplete*)pac)->complete,sizeof(GComplete::complete));
-    break;
-    case static_cast<int>(ID::GDELETE):
-         c = new char[12]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-    break;
-    case static_cast<int>(ID::GLOCALIZE):
-         c = new char[23]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GLocalize*)pac)->question,sizeof(GLocalize::question));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question),&((GLocalize*)pac)->ip,sizeof(GLocalize::ip));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip),&((GLocalize*)pac)->port,sizeof(GLocalize::port));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip)+sizeof(GLocalize::port),&((GLocalize*)pac)->chunkNumber,sizeof(GLocalize::chunkNumber));
-    break;
-    case static_cast<int>(ID::GKILL):
-         c = new char[14]();
-         memcpy(c,&pac->id,sizeof(Packet::id));
-         memcpy(c+sizeof(Packet::id),&((GreenBlue*)pac)->name[10],sizeof(GreenBlue::name[10]));
-         memcpy(c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),&((GKill*)pac)->node,sizeof(GKill::node));
-    break;
-	*/
     
 	return c;
 }
@@ -180,25 +168,25 @@ Packet* Code::decode(char *c, char typePacket){
 	BOGraphPosition_E *BOGraphPositionE ;
 	BOGraphPosition_N *BOGraphPositionN;
 	BOGraphComplete *BOGraph_Complete;
-	/*
-    BChunk *blueC;
-    BHello *blueH;
-    BExist *blueE;
-    BComplete *blueCom;
-    BGet *blueG;
-    BLocalize *blueL;
-    BDelete *blueD;
-    * 
-    GChunk *greenC;
-    GExist *greenE;
-    GComplete *greenCom;
-    GDelete *greenD;
-    GLocalize *greenL;
-    GKill *greenK;
-	*/
-    //*****************************
+	BChunk *Bchunk;
+	BDelete *Bdelete;
+	BHello *Bhello;
+	BJoin *Bjoin;
+	BIdo *Bido;
+	BIdoNot *BidoNot;
+	BDaddy *Bdaddy;
+	BExist_R *Bexist_R;
+	BExist_A *Bexist_A;
+	BComplete_R *Bcomplete_R;
+	BGet_R *Bget_R;
+	BGet_A *Bget_A;
+	BLocate_R *Blocate_R;
+	BComplete_A *Bcomplete_A;
+	BLocate_A *Blocate_A;
+	
 	unsigned char id = 0;
 	memcpy(&id, c,sizeof(Packet::id));
+	
 	if(typePacket == PACKET_ORANGE){
 		switch((unsigned int) id){
 			case static_cast<int>(ID::INITIAL_TOKEN):
@@ -247,120 +235,111 @@ Packet* Code::decode(char *c, char typePacket){
 				memcpy(&BOGraph_Complete->id, c,sizeof(Packet::id));
 				return BOGraph_Complete;
 			break;	
+			case static_cast<int>(ID::BCHUNK):
+				 Bchunk = (BChunk*) calloc  (1,sizeof(BChunk));
+				 memcpy(&Bchunk->id,c,sizeof(Packet::id));
+				 memcpy(&Bchunk->archID[3],&c+sizeof(Packet::id),sizeof(BChunk::archID[3]));
+				 memcpy(&Bchunk->chunkNum,&c+sizeof(Packet::id)+sizeof(BChunk::archID[3]),sizeof(BChunk::chunkNum));
+				 memcpy(&Bchunk->chunk[MAX_PAYLOAD_SIZE],&c+sizeof(Packet::id)+sizeof(BChunk::archID[3])+sizeof(BChunk::chunkNum),sizeof(BChunk::chunk[MAX_PAYLOAD_SIZE]));
+				 return Bchunk;
+			break;
+			 case static_cast<int>(ID::BHELLO):
+				 Bhello = (BHello*) calloc  (1,sizeof(BHello));
+				 memcpy(&Bhello ->id,c,sizeof(Packet::id));
+				 memcpy(&Bhello ->nodeID,c+sizeof(Packet::id),sizeof(BHello::nodeID));
+				 return Bhello;
+			break;
+			case static_cast<int>(ID::BEXISTS_A):
+				 Bexist_A=(BExist_A*) calloc  (1,sizeof(BExist_A));
+				 memcpy(&Bexist_A->id,c,sizeof(Packet::id));
+				 memcpy(&Bexist_A->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bexist_A->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bexist_A;
+			break;
+			case static_cast<int>(ID::BEXISTS_R):
+				 Bexist_R=(BExist_R*) calloc  (1,sizeof(BExist_R));
+				 memcpy(&Bexist_R->id,c,sizeof(Packet::id));
+				 memcpy(&Bexist_R->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bexist_R->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bexist_R;
+			break;
+			case static_cast<int>(ID::BCOMPLETE_A):
+				 Bcomplete_A = (BComplete_A*) calloc  (1,sizeof(BComplete_A));
+				 memcpy(&Bcomplete_A->id,c,sizeof(Packet::id));
+				 memcpy(&Bcomplete_A->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bcomplete_A->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bcomplete_A;
+			break;
+			case static_cast<int>(ID::BCOMPLETE_R):
+				 Bcomplete_R = (BComplete_R*) calloc  (1,sizeof(BComplete_R));
+				 memcpy(&Bcomplete_R->id,c,sizeof(Packet::id));
+				 memcpy(&Bcomplete_R->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bcomplete_R->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bcomplete_R;
+			break;
+			case static_cast<int>(ID::BGET_A):
+				 Bget_A = (BGet_A*) calloc  (1,sizeof(BGet_A));
+				 memcpy(&Bget_A->id,c,sizeof(Packet::id));
+				 memcpy(&Bget_A->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bget_A->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bget_A;
+			break;
+			case static_cast<int>(ID::BGET_R):
+				 Bget_R = (BGet_R*) calloc  (1,sizeof(BGet_R));
+				 memcpy(&Bget_R->id,c,sizeof(Packet::id));
+				 memcpy(&Bget_R->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Bget_R->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Bget_R;
+			break;
+			case static_cast<int>(ID::BLOCATE_A):
+				 Blocate_A = (BLocate_A*) calloc  (1,sizeof(BLocate_A));
+				 memcpy(&Blocate_A->id,c,sizeof(Packet::id));
+				 memcpy(&Blocate_A->nodeID,c+sizeof(Packet::id),sizeof(BLocate_A::nodeID));
+				 memcpy(&Blocate_A->archID[3],c+sizeof(Packet::id)+sizeof(BLocate_A::nodeID),sizeof(BLocate_A::archID[3]));
+				 return Blocate_A;
+			break;
+			case static_cast<int>(ID::BLOCATE_R):
+				 Blocate_R = (BLocate_R*) calloc  (1,sizeof(BLocate_R));
+				 memcpy(&Blocate_R->id,c,sizeof(Packet::id));
+				 memcpy(&Blocate_R->archID[3],c+sizeof(Packet::id),sizeof(BExist_R::archID[3]));
+				 memcpy(&Blocate_R->chunkNum,c+sizeof(Packet::id)+sizeof(BExist_R::archID[3]),sizeof(BExist_R::chunkNum));
+				 return Blocate_R;
+			break;
+			case static_cast<int>(ID::BDELETE):
+				 Bdelete = (BDelete*) calloc  (1,sizeof(BDelete));
+				 memcpy(&Bdelete->id,c,sizeof(Packet::id));
+				 memcpy(&Bdelete->archID[3],c+sizeof(Packet::id),sizeof(BDelete::archID[3]));
+				 return Bdelete;
+			break;
+			case static_cast<int>(ID::BJOIN_TREE):
+				 Bjoin = (BJoin*) calloc  (1,sizeof(BJoin));
+				 memcpy(&Bjoin->id,c,sizeof(Packet::id));
+				 memcpy(&Bjoin->nodeID,c+sizeof(Packet::id),sizeof(BHello::nodeID));
+				 return Bjoin;
+			break;
+			case static_cast<int>(ID::BIDO):
+				 Bido = (BIdo*) calloc  (1,sizeof(BIdo));
+				 memcpy(&Bido->id,c,sizeof(Packet::id));
+				 memcpy(&Bido->nodeID,c+sizeof(Packet::id),sizeof(BHello::nodeID));
+				 return Bido;
+			break;
+			case static_cast<int>(ID::BIDONOT):
+				 BidoNot = (BIdoNot*) calloc  (1,sizeof(BIdoNot));
+				 memcpy(&BidoNot->id,c,sizeof(Packet::id));
+				 memcpy(&BidoNot->nodeID,c+sizeof(Packet::id),sizeof(BHello::nodeID));
+				 return BidoNot;
+			break;
+			case static_cast<int>(ID::BDADDY):
+				 Bdaddy = (BDaddy*) calloc  (1,sizeof(BDaddy));
+				 memcpy(&Bdaddy->id,c,sizeof(Packet::id));
+				 memcpy(&Bdaddy->nodeID,c+sizeof(Packet::id),sizeof(BHello::nodeID));
+				 return Bdaddy;
+			break;
 		}
-		
-	}
+	  }
 	assert(false);
     error_exit(-1, "Decode error: Id desconocido!\n");
     return nullptr;
-
-		/*
-		 case static_cast<int>(ID::BCHUNK):
-         blueC=(BChunk*) calloc  (1,sizeof(BChunk));
-         memcpy(&blueC->id,c,sizeof(Packet::id));
-         memcpy(&blueC->name[10],&c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueC->totalChunks,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BChunk::totalChunks));
-         memcpy(&blueC->chunkNumber,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks),sizeof(BChunk::chunkNumber));
-         memcpy(&blueC->data[10240],&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber),sizeof(BChunk::data[10240]));
-         memcpy(&blueC->hops,&c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BChunk::totalChunks)+sizeof(BChunk::chunkNumber)+sizeof(BChunk::data[10240]),sizeof(BChunk::hops));
-         return blueC;
-        break;
-    case static_cast<int>(ID::BHELLO):
-         blueH=(BHello*) calloc  (1,sizeof(BHello));
-         memcpy(&blueH->id,c,sizeof(Packet::id));
-         memcpy(&blueH->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueH->node,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BHello::node));
-         return blueH;
-    break;
-    case static_cast<int>(ID::BEXIST):
-         blueE=(BExist*) calloc  (1,sizeof(BExist));
-         memcpy(&blueE->id,c,sizeof(Packet::id));
-         memcpy(&blueE->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueE->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BExist::question));
-         memcpy(&blueE->exist,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BExist::question),sizeof(BExist::exist));
-         return blueE;
-    break;
-    case static_cast<int>(ID::BCOMPLETE):
-         blueCom=(BComplete*) calloc  (1,sizeof(BComplete));
-         memcpy(&blueCom->id,c,sizeof(Packet::id));
-         memcpy(&blueCom->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueCom->totalChunks,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BComplete::totalChunks));
-         memcpy(&blueCom->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks),sizeof(BComplete::question));
-         memcpy(&blueCom->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BComplete::totalChunks)+sizeof(BComplete::question),sizeof(BComplete::chunkNumber));
-         return blueCom;
-    break;
-    case static_cast<int>(ID::BGET):
-         blueG=(BGet*) calloc  (1,sizeof(BGet));
-         memcpy(&blueG->id,c,sizeof(Packet::id));
-         memcpy(&blueG->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueG->totalChunks,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BGet::totalChunks));
-         memcpy(&blueG->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks),sizeof(BGet::question));
-         memcpy(&blueG->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::question),sizeof(BGet::chunkNumber));
-         memcpy(&blueG->chunk[10240],c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BGet::totalChunks)+sizeof(BGet::question)+sizeof(BGet::question)+sizeof(BGet::chunkNumber),sizeof(BGet::chunk[10240]));
-         return blueG;
-    break;
-    case static_cast<int>(ID::BLOCALIZE):
-         blueL=(BLocalize*) calloc  (1,sizeof(BLocalize));
-         memcpy(&blueL->id,c,sizeof(Packet::id));
-         memcpy(&blueL->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         memcpy(&blueL->question,c+sizeof(Packet::id)+sizeof(BluePacket::name[10]),sizeof(BLocalize::question));
-         memcpy(&blueL->ip,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question),sizeof(BLocalize::ip));
-         memcpy(&blueL->port,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip),sizeof(BLocalize::port));
-         memcpy(&blueL->chunkNumber,c+sizeof(Packet::id)+sizeof(BluePacket::name[10])+sizeof(BLocalize::question)+sizeof(BLocalize::ip)+sizeof(BLocalize::port),sizeof(BLocalize::chunkNumber));
-         return blueL;
-    break;
-    case static_cast<int>(ID::BDELETE):
-         blueD=(BDelete*) calloc  (1,sizeof(BDelete));
-         memcpy(&blueD->id,c,sizeof(Packet::id));
-         memcpy(&blueD->name[10],c+sizeof(Packet::id),sizeof(BluePacket::name[10]));
-         return blueD;
-    break;
-    case static_cast<int>(ID::GCHUNK):
-         greenC=(GChunk*) calloc  (1,sizeof(GChunk));
-         memcpy(&greenC->id,c,sizeof(Packet::id));
-         memcpy(&greenC->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         memcpy(&greenC->totalChunks,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GChunk::totalChunks));
-         memcpy(&greenC->data[10240],c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GChunk::totalChunks),sizeof(GChunk::data[10240]));
-         return greenC;
-    break;
-    case static_cast<int>(ID::GEXIST):
-         greenE=(GExist*) calloc  (1,sizeof(GExist));
-         memcpy(&greenE->id,c,sizeof(Packet::id));
-         memcpy(&greenE->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         memcpy(&greenE->exist,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GExist::exist));
-         return greenE;
-    break;
-    case static_cast<int>(ID::GCOMPLETE):
-         greenCom=(GComplete*) calloc  (1,sizeof(GComplete));
-         memcpy(&greenCom->id,c,sizeof(Packet::id));
-         memcpy(&greenCom->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         memcpy(&greenCom->complete,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GComplete::complete));
-         return greenCom;
-    break;
-    case static_cast<int>(ID::GDELETE):
-         greenD=(GDelete*) calloc  (1,sizeof(GDelete));
-         memcpy(&greenD->id,c,sizeof(Packet::id));
-         memcpy(&greenD->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         return greenD;
-    break;
-    case static_cast<int>(ID::GLOCALIZE):
-         greenL=(GLocalize*) calloc  (1,sizeof(GLocalize));
-         memcpy(&greenL->id,c,sizeof(Packet::id));
-         memcpy(&greenL->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         memcpy(&greenL->question,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GLocalize::question));
-         memcpy(&greenL->ip,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question),sizeof(GLocalize::ip));
-         memcpy(&greenL->port,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip),sizeof(GLocalize::port));
-         memcpy(&greenL->chunkNumber,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10])+sizeof(GLocalize::question)+sizeof(GLocalize::ip)+sizeof(GLocalize::port),sizeof(GLocalize::chunkNumber));
-         return greenL;
-    break;
-    case static_cast<int>(ID::GKILL):
-         greenK=(GKill*) calloc  (1,sizeof(GKill));
-         memcpy(&greenK->id,c,sizeof(Packet::id));
-         memcpy(&greenK->name[10],c+sizeof(Packet::id),sizeof(GreenBlue::name[10]));
-         memcpy(&greenK->node,c+sizeof(Packet::id)+sizeof(GreenBlue::name[10]),sizeof(GKill::node));
-         return greenK;
-    break;
-	*/
 }
 
 size_t Code::findPacketLen(Packet *p)
@@ -392,51 +371,54 @@ size_t Code::findPacketLen(Packet *p)
 		case ID::BOGRAPH_COMPLETE:
 			return sizeof(BOGraphComplete);
 		break;
-		default:
-			error_exit(-1, "Find packet len error: Id desconocido!\n");
-	 }
-   }
-		/*
 		case ID::BCHUNK:
 		    return sizeof(BChunk);
 		    break;
 		case ID::BHELLO:
 		    return sizeof(BHello);
 		    break;
-		case ID::BEXIST:
-		    return sizeof(BExist);
+		case ID::BEXISTS_A:
+		    return sizeof(BExist_A);
 		    break;
-		case ID::BCOMPLETE:
-		    return sizeof(BComplete);
+		case ID::BEXISTS_R:
+		    return sizeof(BExist_R);
 		    break;
-		case ID::BGET:
-		    return sizeof(BGet);
+		case ID::BCOMPLETE_A:
+		    return sizeof(BComplete_A);
 		    break;
-		case ID::BLOCALIZE:
-		    return sizeof(BLocalize);
+		case ID::BCOMPLETE_R:
+		    return sizeof(BComplete_R);
+		    break;
+		case ID::BGET_A:
+		    return sizeof(BGet_A);
+		    break;
+		case ID::BGET_R:
+		    return sizeof(BGet_R);
+		    break;
+		case ID::BLOCATE_A:
+		    return sizeof(BLocate_A);
+		    break;
+		case ID::BLOCATE_R:
+		    return sizeof(BLocate_R);
 		    break;
 		case ID::BDELETE:
 		    return sizeof(BDelete);
 		    break;
-		case ID::GCHUNK:
-		    return sizeof(GChunk);
+		case ID::BJOIN_TREE:
+		    return sizeof(BJoin);
 		    break;
-		case ID::GEXIST:
-		    return sizeof(GExist);
+		case ID::BIDO:
+		    return sizeof(BIdo);
 		    break;
-		case ID::GCOMPLETE:
-		    return sizeof(GComplete);
+		case ID::BIDONOT:
+		    return sizeof(BIdoNot);
 		    break;
-		case ID::GDELETE:
-		    return sizeof(GDelete);
+		case ID::BDADDY:
+		    return sizeof(BDaddy);
 		    break;
-		case ID::GLOCALIZE:
-		    return sizeof(GLocalize);
-		    break;
-		case ID::GKILL:
-		    return sizeof(GKill);
-		    break;
-		*/
-	
+		default:
+			error_exit(-1, "Find packet len error: Id desconocido!\n");
+	 }
+   }
 	return -1;
 }
