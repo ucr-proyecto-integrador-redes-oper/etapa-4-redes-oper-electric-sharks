@@ -55,8 +55,10 @@ char* Code::encode(Packet *pac, int type){
 				 case static_cast<int>(ID::BOGRAPH_POSITION_N):
 				  c = new char[7]();
 				  memcpy(c,&pac->id,sizeof(Packet::id));
-				  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
-				  memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
+				  memcpy(c + sizeof(Packet::id),&((BOGraphPosition_E*)pac)->nodeID,sizeof(BOGraphPosition_E::nodeID));
+				  memcpy(c + sizeof(Packet::id) + sizeof(BOGraphPosition_E::nodeID),&((BOGraphPosition_E*)pac)->neighborID,sizeof(BOGraphPosition_E::neighborID));
+				  memcpy(c + sizeof(Packet::id)+ sizeof(BOGraphPosition_E::nodeID) + sizeof(BOGraphPosition_E::neighborID),&((BOGraphPosition_N*)pac)->neighborIP,sizeof(BOGraphPosition_N::neighborIP));
+				  memcpy(c + sizeof(Packet::id)+ sizeof(BOGraphPosition_E::nodeID) + sizeof(BOGraphPosition_E::neighborID) + sizeof(BOGraphPosition_N::neighborIP),&((BOGraphPosition_N*)pac)->neighborPort,sizeof(BOGraphPosition_N::neighborPort));
 				 break;
 				 case static_cast<int>(ID::BOGRAPH_COMPLETE):
 				  c = new char[1]();
