@@ -23,6 +23,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	pthread_mutex_init(&this->lockOut, nullptr);
 	this->orangeSocket = new Socket(Protocol::UDP);
 	this->blueSocket = new reUDP(BLUE_PORT);
+	this->blueSocket->run();
 	loadCSV(csv_file, &this->blue_graph);
 	initBlueMap();
 	this->allNodesIP.resize(0);
@@ -393,14 +394,14 @@ void Orange::respondToBlueRequest(Orange* orange, Token* token)
 		if(orange->blueMapping[neighbor].first != 0){	//si el vecino está instanciado
 			//toma la dirección ip y puerto del vecino, los mete en un paquete de respuesta y lo manda
 			answer = (BOGraphPosition_N*) calloc(1, sizeof(BOGraphPosition_N));
-			answer->id = ID::BOJOIN_GRAPH;
+			answer->id = ID::BOGRAPH_POSITION_E;
 			((BOGraphPosition_N*)answer)->nodeID = token->node;
 			((BOGraphPosition_N*)answer)->neighborID = neighbor;
 			((BOGraphPosition_N*)answer)->neighborIP = orange->blueMapping[neighbor].first;
 			((BOGraphPosition_N*)answer)->neighborPort = orange->blueMapping[neighbor].second;	
 		}else{ //si el vecino no está instanciado, solo toma la id del nodo y de su vecino, y las manda
 			answer = (BOGraphPosition_E*) calloc(1, sizeof(BOGraphPosition_E));
-			answer->id = ID::BOJOIN_GRAPH;
+			answer->id = ID::BOGRAPH_POSITION_N;
 			((BOGraphPosition_E*)answer)->nodeID = token->node;
 			((BOGraphPosition_E*)answer)->neighborID = neighbor;
 		}

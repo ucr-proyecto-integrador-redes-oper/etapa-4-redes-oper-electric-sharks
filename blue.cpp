@@ -11,6 +11,8 @@ Blue::Blue(char* orangeIPAddr, unsigned short int port)
 	this->myPort = port;
 	this->orangeSocket = new reUDP(this->myPort);
 	this->blueSocket = new reUDP(this->myPort);
+	this->orangeSocket->run();
+	this->blueSocket->run();
 	
 	memcpy(this->myOrangeIP, orangeIPAddr, IP_LEN);
 }
@@ -123,7 +125,7 @@ void *Blue::receiver(Blue* blue, int type){
         assert(currentPacket);
 		
 		currentEntry->packet = currentPacket;
-		currentEntry->typeNode = type;
+		currentEntry->typeNode = PACKET_BLUE;
 		currentEntry->senderIP = senderAddr.sin_addr.s_addr;
 		currentEntry->senderPort = senderAddr.sin_port;	//problema
 		
