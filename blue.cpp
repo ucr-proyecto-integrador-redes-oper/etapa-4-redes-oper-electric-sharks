@@ -8,10 +8,10 @@ Blue::Blue(char* orangeIPAddr, unsigned short int port)
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
-	this->orangeSocket = new Socket(Protocol::UDP);
-	this->blueSocket = new Socket(Protocol::UDP);
-	this->secSocket = new reUDP(BLUE_PORT);
 	this->myPort = port;
+	this->orangeSocket = new reUDP(this->myPort);
+	this->blueSocket = new reUDP(this->myPort);
+	
 	memcpy(this->myOrangeIP, orangeIPAddr, IP_LEN);
 }
 
@@ -21,7 +21,6 @@ Blue::~Blue()
 	sem_destroy(&this->OutBufferSem);
 	delete this->orangeSocket;
 	delete this->blueSocket;
-	delete this->secSocket;
 }
 /** \brief Agrega vecinos al mapa y sus ip al vector
  *
@@ -48,7 +47,7 @@ void *Blue::sender(Blue* blue){
 	
 			/*Solo se comunica con su naranja por ahora, hace falta comunicar con otros azules.*/
 			if(currentEntry->sendTo == NODE_ORANGE)
-				blue->orangeSocket->Sendto(rawPacket, packetLen, blue->myOrangeIP, BLUE_PORT);
+				blue->orangeSocket->Sendto(rawPacket, blue->myOrangeIP, BLUE_PORT, packetLen);
 			
 			free(toSend);
             free(currentEntry);
@@ -116,9 +115,9 @@ void *Blue::receiver(Blue* blue, int type){
         /*Lee del socket*/
 
        if(type == COMM_BLUE)
-			blue->blueSocket->Recvfrom(buffer, BUF_SIZE, BLUE_PORT, &senderAddr);
+			blue->blueSocket->Recvfrom(buffer, &senderAddr);
         else
-			blue->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
+			blue->orangeSocket->Recvfrom(buffer, &senderAddr);
         /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer, (type == COMM_BLUE? PACKET_BLUE : PACKET_ORANGE));
         assert(currentPacket);
@@ -126,7 +125,7 @@ void *Blue::receiver(Blue* blue, int type){
 		currentEntry->packet = currentPacket;
 		currentEntry->typeNode = type;
 		currentEntry->senderIP = senderAddr.sin_addr.s_addr;
-		currentEntry->senderPort = senderAddr.sin_port;
+		currentEntry->senderPort = senderAddr.sin_port;	//problema
 		
 		/*Mete el paquete a la cola privada*/
 		blue->privateInBuffer.push(currentEntry);

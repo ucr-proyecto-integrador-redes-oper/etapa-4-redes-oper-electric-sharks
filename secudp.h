@@ -52,7 +52,9 @@ class reUDP{
 		reUDP(uint16_t);
 		~reUDP();
 		void run();
-		void Sendto(const char *, const char *, uint16_t, size_t = PAYLOAD_SIZE);
+		
+		
+		void Sendto(const char * message, const char * destination, uint16_t port, size_t len = PAYLOAD_SIZE);
 		void Recvfrom(char *, struct sockaddr_in * = nullptr);
 		void printPacket(const struct data_frame *, size_t);
 };

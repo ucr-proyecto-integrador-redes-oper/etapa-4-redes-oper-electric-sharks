@@ -6,6 +6,7 @@
 #include "socket.h"
 #include "encoder.h"
 #include "error_handler.h"
+#include "secudp.h"
 
 #include <pthread.h>
 #include <queue>
@@ -61,7 +62,7 @@ class Orange{
         
         ID packetsID;
         Socket * orangeSocket;
-        Socket * blueSocket;
+        reUDP * blueSocket;
         Code coder;
 
         void * receiver(Orange*, int type);

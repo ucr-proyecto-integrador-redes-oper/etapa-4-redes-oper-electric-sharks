@@ -22,7 +22,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
 	this->orangeSocket = new Socket(Protocol::UDP);
-	this->blueSocket = new Socket(Protocol::UDP);
+	this->blueSocket = new reUDP(BLUE_PORT);
 	loadCSV(csv_file, &this->blue_graph);
 	initBlueMap();
 	this->allNodesIP.resize(0);
@@ -82,7 +82,7 @@ void *Orange::receiver(Orange* orange, int type){
         /*Lee del socket*/
 
 		if(type == COMM_BLUE)
-			orange->blueSocket->Recvfrom(buffer, BUF_SIZE, BLUE_PORT, &senderAddr);
+			orange->blueSocket->Recvfrom(buffer, &senderAddr);
         else
 			orange->orangeSocket->Recvfrom(buffer, BUF_SIZE, ORANGE_PORT, &senderAddr);
         /*Transforma la tira de bytes en un paquete*/
@@ -92,7 +92,7 @@ void *Orange::receiver(Orange* orange, int type){
 		currentEntry->packet = currentPacket;
 		currentEntry->typeNode = type;
 		currentEntry->senderIP = senderAddr.sin_addr.s_addr;
-		currentEntry->senderPort = senderAddr.sin_port;
+		currentEntry->senderPort = htons(senderAddr.sin_port);
 		
 		/*Mete el paquete a la cola privada*/
 		orange->privateInBuffer.push(currentEntry);
@@ -194,7 +194,7 @@ void *Orange::sender(Orange* orange){
 				assert(rawPacket);
 				char buffer[IP_LEN];
 				cout << "Respondiendo solicitud de azul al puerto: " << currentEntry->sendToPort << endl;
-				orange->orangeSocket->Sendto(rawPacket, packetLen, Socket::decode_ip(currentEntry->sendToIP, buffer), currentEntry->sendToPort);
+				orange->blueSocket->Sendto(rawPacket, Socket::decode_ip(currentEntry->sendToIP, buffer), currentEntry->sendToPort, packetLen);
 			}
 			free(toSend);
             free(currentEntry);
