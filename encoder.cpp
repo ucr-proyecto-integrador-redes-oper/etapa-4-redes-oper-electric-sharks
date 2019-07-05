@@ -226,8 +226,10 @@ Packet* Code::decode(char *c, char typePacket){
 			case static_cast<int>(ID::BOGRAPH_POSITION_N):
 				BOGraphPositionN = (BOGraphPosition_N*) calloc(1,sizeof(BOGraphPosition_N));
 				memcpy(&BOGraphPositionN->id, c,sizeof(Packet::id));
-				memcpy(&BOGraphPositionN->neighborIP,c+sizeof(Packet::id),sizeof(BOGraphPosition_N::neighborIP));
-				memcpy(&BOGraphPositionN->neighborPort,c+sizeof(Packet::id)+sizeof(BOGraphPosition_N::neighborPort),sizeof(BOGraphPosition_N::neighborPort));
+				memcpy(&BOGraphPositionN->nodeID,c+sizeof(Packet::id),sizeof(BOGraphPosition_E::nodeID));
+				memcpy(&BOGraphPositionN->neighborID,c+sizeof(Packet::id)+sizeof(BOGraphPosition_E::nodeID),sizeof(BOGraphPosition_E::neighborID));
+				memcpy(&BOGraphPositionN->neighborIP,c+sizeof(Packet::id)+sizeof(BOGraphPosition_E::nodeID) + sizeof(BOGraphPosition_E::neighborID),sizeof(BOGraphPosition_N::neighborIP));
+				memcpy(&BOGraphPositionN->neighborPort, c + sizeof(Packet::id) + sizeof(BOGraphPosition_E::nodeID) + sizeof(BOGraphPosition_N::neighborID)+ sizeof(BOGraphPosition_N::neighborIP) + sizeof(BOGraphPosition_N::neighborPort),sizeof(BOGraphPosition_N::neighborPort));
 				return BOGraphPositionN;
 			break;
 			case static_cast<int>(ID::BOGRAPH_COMPLETE):

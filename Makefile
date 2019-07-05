@@ -1,6 +1,6 @@
 CXX = g++ 
 
-FLAGS = -D DEBUG -g -Wall
+FLAGS = -g -Wall
  
 orange: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o
 	$(CXX) -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp secudp.cpp -pthread
