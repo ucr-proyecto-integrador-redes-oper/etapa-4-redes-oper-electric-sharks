@@ -121,7 +121,7 @@ void *Blue::receiver(Blue* blue, int type){
         else
 			blue->orangeSocket->Recvfrom(buffer, &senderAddr);
         /*Transforma la tira de bytes en un paquete*/
-        currentPacket = coder.decode(buffer, (type == COMM_BLUE? PACKET_BLUE : PACKET_ORANGE));
+        currentPacket = coder.decode(buffer, PACKET_BLUE);
         assert(currentPacket);
 		
 		currentEntry->packet = currentPacket;
@@ -176,8 +176,9 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 	blue->myGraphID = ((BOGraphPosition_E*) packet)->nodeID;
 	
 	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
+	unsigned short int node = ((BOGraphPosition_E*)packet)->nodeID;
 	
-	cout << "Guardando asignación: nodo del grafo: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
+	cout << "Guardando asignación: soy el nodo del grafo: " << node << " vecino: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
 	
 	//Mapa de puerto con ip de cada vecino
 	if(instantiated){
