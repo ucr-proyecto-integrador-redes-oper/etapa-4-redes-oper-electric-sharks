@@ -224,8 +224,8 @@ void Blue::greetNeighbor(Blue* blue)
 }
 
 int main(int argc, char* argv[]){
-	if(argc < 3)
-		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port>" << endl), -1;
+	if(argc < 4)
+		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port> <blue_host_IP>" << endl), -1;
 	if(!Socket::validateIP(argv[1]))
 		error_exit(-1, "Ip inválida!\n");
 		
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]){
     args1.commWith = COMM_BLUE;
     args2.commWith = COMM_ORANGE;
     
-    Socket::getHostIP(blueNode.getIP());
+	strcpy(blueNode.getIP(), argv[3]);
 
     pthread_create(&receiverBlues, NULL, &Blue::receiverHelper, &args1);
     pthread_create(&receiverOranges, NULL, &Blue::receiverHelper, &args2);

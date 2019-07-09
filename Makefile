@@ -1,18 +1,20 @@
 CXX = g++ 
 
-FLAGS = -g -Wall
- 
-orange: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o
-	$(CXX) -g -o orange.o orange.cpp socket.cpp encoder.cpp error_handler.c loadCSV.cpp secudp.cpp -pthread
+FLAGS = -g -Wall -Wextra
 
-warn: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o
-	$(CXX) -Wall -Wextra -g -o orange socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o orange.o -pthread
+all: orange blue greenNode
+ 
+orange: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o
+	$(CXX) $(FLAGS) -o orange socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o orange.o -pthread
 	
 blue: socket.o encoder.o error_handler.o blue.o secudp.o semaphore.o
-	$(CXX) -g -o blue.o blue.cpp socket.cpp error_handler.c encoder.cpp secudp.cpp semaphore.cpp -pthread 
+	$(CXX) $(FLAGS) -o blue blue.o socket.o error_handler.o encoder.o secudp.o semaphore.o -pthread 
 
 greenNode: greenNode.o secudp.o socket.o semaphore.o error_handler.o
 	$(CXX) $(FLAGS) -pthread greenNode.o secudp.o socket.o semaphore.o error_handler.o -o greenNode
+
+blue.o: blue.cpp
+	$(CXX) $(FLAGS) -c blue.cpp
 
 socket.o: socket.cpp
 	$(CXX) $(FLAGS) -c socket.cpp
