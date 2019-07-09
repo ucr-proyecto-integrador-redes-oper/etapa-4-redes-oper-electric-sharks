@@ -5,6 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <pthread.h>
 #include <ifaddrs.h>
 #include <netdb.h>
@@ -452,8 +453,8 @@ char* Orange::getIP()
 }
 
 int main(int argc, char* argv[]){
-	if(argc < 2)
-		return (cout << "Usage: " << argv[0] << " <num_oranges>" << endl), 0;
+	if(argc < 3)
+		return (cout << "Usage: " << argv[0] << " <num_oranges> <this IP> "  << endl), 0;
 	int numOranges = atoi(argv[1]);
     int id = 0;
     unsigned short int orangeInPort = ORANGE_PORT;
@@ -480,7 +481,8 @@ int main(int argc, char* argv[]){
 	orangeNode.print_graph();
 	
     orangeNode.requestIP();
-	Socket::getHostIP(orangeNode.getIP());
+	strcpy(orangeNode.getIP(), argv[2]);
+	//Socket::getHostIP(orangeNode.getIP());
 
     pthread_create(&processer, NULL, &Orange::processerHelper, &orangeNode);
 	

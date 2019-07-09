@@ -124,7 +124,7 @@ void reUDP::sender(){
 			printf("Sending %d to %s::%d\n", it->first, inet_ntoa(it->second->direc->addr), it->second->direc->port);
 		#endif
 			sock.Sendto((const char *) it->second->frame, 
-						it->second->len + 3,
+						it->second->len + 3, //El tamano del buffer + 3 de encabezado
 						it->second->direc->addr, 
 						it->second->direc->port);
 		}
