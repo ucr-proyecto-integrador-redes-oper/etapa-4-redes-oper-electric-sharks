@@ -27,35 +27,42 @@ class Blue{
     private:
 		char myIP[IP_LEN];
 		char myOrangeIP[IP_LEN];
-    
+
+        /*Buffers para compartir información entre threads */
         queue<PacketEntry*> privateInBuffer;
         queue<PacketEntry*> privateOutBuffer;
         queue<PacketEntry*> sharedInBuffer;
         queue<PacketEntry*> sharedOutBuffer;
         queue<PacketEntry*> blueRequests;
     
+        /*Herramientas para controlar la concurrencia entre threads*/
         pthread_mutex_t lockIn;
         pthread_mutex_t lockOut;
-        
-        reUDP* orangeSocket;
-        reUDP* blueSocket;
-        Code coder;
-
         sem_t InBufferSem;
         sem_t OutBufferSem;
         
+        /**Sockets para la comunicación con otros nodos, naranjas y azules.*/
+        reUDP* orangeSocket;
+        reUDP* blueSocket;
+        Code coder;
+        
+        //ID asignado por el nodo naranja
         unsigned short int myGraphID;
+
+        //Puerto por el cual se recibe la comunicacion con otros nodos
         unsigned short int myPort;
 
         void putInSendQueue(Blue* blue, Packet* p, int direction);
 
         map <unsigned short int, pair<unsigned int, unsigned short int>> mapNeighbors;
-        //map <unsigned int, unsigned short int>::iterator i;
+
+        //Vector en donde se almacenan los puertos de los nodos recibidos como vecinos. Se utiliza para iterar sobre el mapa de vecinos.
         vector<unsigned int> ports_Neighbors;
         
         void saveNeighbor(Blue*, PacketEntry*, bool);
         void sendChunk(char []);
 
+        /**Threads */
         void * receiver(Blue*, int);
         void * processer(Blue*);
         void * sender(Blue*);

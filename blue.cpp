@@ -24,14 +24,8 @@ Blue::~Blue()
 	delete this->orangeSocket;
 	delete this->blueSocket;
 }
-/** \brief Agrega vecinos al mapa y sus ip al vector
- *
- * \param Ip de vecinos
- * \param Puerto de vecinos
- * \return
- *
- */
 
+///Funcion ejecutada en paralelo por el thread que va a enviar a otos nodos naranjas y azules información en la cola de salida
 void *Blue::sender(Blue* blue){
     char* rawPacket = nullptr;
     
@@ -66,6 +60,7 @@ void *Blue::sender(Blue* blue){
     }
 }
 
+///Funcion que toma mensajes de la cola privada con receiver y los procesa según su tipo
 void *Blue::processer(Blue* blue)
 {
 	blue->requestGraphNode(blue);
@@ -103,6 +98,7 @@ void *Blue::processer(Blue* blue)
     }
 }
 
+///Función ejecutada en paralelo para escuchar a los otros nodos del sistema
 void *Blue::receiver(Blue* blue, int type){
     char* buffer = new char[BUF_SIZE];
     memset(buffer, 0, BUF_SIZE);
@@ -153,6 +149,7 @@ void *Blue::receiver(Blue* blue, int type){
     }
 }
 
+/* Funciones estaticas para ser llamadas por pthreads */
 void *Blue::senderHelper(void *context){
     return ((Blue *)context)->sender((Blue*) context);
 }
@@ -166,6 +163,7 @@ void *Blue::receiverHelper(void *args){
     return ((Blue*)arg->node)->receiver((Blue*)arg->node, ((BlueArgs*)args)->commWith);
 }
 
+///Funcion que guarda un nuevo vecino en el mapa de vecinos. Ademas, se guarda el puerto en un vector para luego iterar sobre el mapa
 void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated){
 	Packet* packet;
 	if(!instantiated)
@@ -194,28 +192,7 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 	free(currentEntry);
 }
 
-/** \brief Round robin
- *
- * \param El chunk
- * \param
- * \return
- *
- */
- 
-/*
-void Blue::sendChunk(char chunk[1024]){
-    int num_Neighbors = ports_Neighbors.size();
-    int pointer_vector = 0;
-
-    if(pointer_vector < num_Neighbors{
-      //Envia el chunk al vecino al que este apuntando a ese momento a ip y puerto del mapa
-      ++pointer_vector;
-    }else{
-      pointer_vector = 0;
-      //si tiene espacio se deja el chunk porque ya lo envió a todos los vecinos
-    }
-}*/
-
+//Funcion que toma un paquete y le agrega informacion en una nueva estructura para ser enviado por el thread sender
 void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
@@ -232,6 +209,7 @@ char* Blue::getIP()
 	return this->myIP;
 }
 
+///Crea un paquete para solicitar a un nodo naranja la asignación en la red de almacenamiento
 void Blue::requestGraphNode(Blue* blue)
 {
 	BOJoinGraph* joinRequest = (BOJoinGraph*) calloc(1, sizeof(BOJoinGraph));
