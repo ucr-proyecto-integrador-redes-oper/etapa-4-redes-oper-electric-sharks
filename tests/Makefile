@@ -1,6 +1,6 @@
 CXX = g++
 
-FLAGS = -D DEBUG -g -Wall
+FLAGS = -g -Wall -Wextra
 
 client.o: client.cpp
 	$(CXX) $(FLAGS) -c client.cpp

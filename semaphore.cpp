@@ -2,10 +2,6 @@
 #include <mutex>
 #include <condition_variable>
 
-#ifdef DEBUG
-#include <iostream>
-#endif
-
 void Semaphore::wait(){
 	std::unique_lock<std::mutex> lck(semMtx);
 	valueMtx.lock();

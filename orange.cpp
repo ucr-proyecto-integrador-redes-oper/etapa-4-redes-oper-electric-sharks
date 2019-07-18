@@ -16,13 +16,14 @@
 using namespace std;
 
 Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orangeOutPort, int totalOranges, string csv_file)
-: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), tokenCreated(false)
+: id(id), orangeInPort(orangeInPort), orangeOutPort(orangeOutPort), numTotalOranges(totalOranges), tokenCreated(false), tokenOccupied(false)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
 	this->orangeSocket = new Socket(Protocol::UDP);
+	this->orangeSocket->Bind(ORANGE_PORT);
 	this->blueSocket = new reUDP(BLUE_PORT);
 	this->blueSocket->run();
 	loadCSV(csv_file, &this->blue_graph);
@@ -309,16 +310,20 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 
 void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 {
+	cout << "Empty token" << endl;
 	Token* token = (Token*)currentEntry->packet;
 	//si el token está libre, y tiene asignaciones pendientes
 	if(!orange->blueRequests.empty()){
 		BlueRequest* request = orange->blueRequests.front();
 		orange->blueRequests.pop();
 		//asigna un azul a un nodo del grafo
-		int newAssignment = orange->findNextUnassigned(orange);
+		unsigned short int newAssignment = orange->findNextUnassigned(orange);
+		std::cout << "new assignment " << newAssignment << std::endl;
+		/*
 		if(newAssignment == -1){
 			error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
 		}
+		*/
 		token->id = ID::TOKEN_FULL_AND_REQUEST;
 		token->node = newAssignment;
 		token->assignedIp = request->blueIP;
@@ -334,8 +339,8 @@ void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 		orange->respondToBlueRequest(orange, token);
 	}else{
 		//sino, solo pasa el token al vecino derecho
-		cout << "recibí el token " << endl;
-		cout << "pasando el token a " << orange->rightIP << endl;
+		//cout << "recibí el token " << endl;
+		//cout << "pasando el token a " << orange->rightIP << endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 		orange->putInSendQueue(orange, token, NODE_ORANGE);
 	}
@@ -343,6 +348,7 @@ void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 
 void Orange::processFullRequestToken(Orange* orange, PacketEntry* currentEntry)
 {
+	cout << "Full request token" << endl;
 	Token* token = (Token*) currentEntry->packet;
 	//si fue el mismo quien lo ocupó, lo libera y limpia la información de la asignación
 	if(orange->tokenOccupied){
@@ -427,7 +433,7 @@ void Orange::initBlueMap()
 	}
 }
 
-int Orange::findNextUnassigned(Orange* orange)
+unsigned short int Orange::findNextUnassigned(Orange* orange)
 {
 	for(auto node : orange->blueMapping)
 		if(node.second.first == 0 && node.second.second == 0)
@@ -453,14 +459,14 @@ char* Orange::getIP()
 }
 
 int main(int argc, char* argv[]){
-	if(argc < 3)
-		return (cout << "Usage: " << argv[0] << " <num_oranges> <this IP> "  << endl), 0;
+	if(argc < 4)
+		return (cout << "Usage: " << argv[0] << " <num_oranges> <this IP> <csv_file> "  << endl), 0;
 	int numOranges = atoi(argv[1]);
     int id = 0;
     unsigned short int orangeInPort = ORANGE_PORT;
     unsigned short int orangeOutPort = ORANGE_PORT;
     //get_args(id, orangeInPort, orangeOutPort, argc, argv);
-    Orange orangeNode(id, orangeInPort, orangeOutPort, numOranges);
+    Orange orangeNode(id, orangeInPort, orangeOutPort, numOranges, argv[3]);
     
     pthread_t receiverOranges;
     pthread_t receiverBlues;

@@ -77,7 +77,7 @@ int Socket::Bind(uint16_t port){
 	server_addr.sin_port = htons(port);
 	server_addr.sin_family = AF_INET;
 	if((status = bind(sfd, (const struct sockaddr *) &server_addr, sizeof(struct sockaddr_in))) == -1){
-		perror("Error connecting!\n");
+		perror("Error binding!\n");
 	}
 	return status;
 }
@@ -142,7 +142,7 @@ int Socket::Recvfrom(char * message, int len, struct sockaddr_in * client_addr){
 	receiver_addr.sin_addr.s_addr = INADDR_ANY;
 	receiver_addr.sin_port = htons(udp_port);
 	
-	bind(sfd, (const struct sockaddr *) &receiver_addr,  sizeof(receiver_addr));
+	//bind(sfd, (const struct sockaddr *) &receiver_addr,  sizeof(receiver_addr));
 	
 	int received;
 	unsigned int struct_size = sizeof(struct sockaddr_in);
@@ -159,7 +159,7 @@ int Socket::Recvfrom(char * message, int len, unsigned short port, struct sockad
 	receiver_addr.sin_addr.s_addr = INADDR_ANY;
 	receiver_addr.sin_port = htons(port);
 	
-	bind(sfd, (const struct sockaddr *)&receiver_addr,  sizeof(receiver_addr));
+	//bind(sfd, (const struct sockaddr *)&receiver_addr,  sizeof(receiver_addr));
 	
 	int received;
 	unsigned int struct_size = sizeof(struct sockaddr_in);

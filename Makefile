@@ -2,6 +2,8 @@ CXX = g++
 
 FLAGS = -g -Wall -Wextra
 
+.DEFAULT_GOAL := all
+
 all: orange blue greenNode
  
 orange: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o

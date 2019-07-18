@@ -150,7 +150,7 @@ class Orange{
         void processJoinRequest(Orange*, PacketEntry*);
         void respondToBlueRequest(Orange*, Token*);
         void initBlueMap();
-        int findNextUnassigned(Orange*);
+        unsigned short int findNextUnassigned(Orange*);
         
 
     public:

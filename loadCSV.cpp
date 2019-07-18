@@ -34,9 +34,9 @@ void loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mma
 	}
 	int i = 1;
 	while(fs){
-		mmap->emplace(i, std::list<int>());
 		fs >> str;
 		if(str.size() > 0){
+			mmap->emplace(i, std::list<int>());
 			parseCSV(i, str, mmap->at(i));
 		}
 		str.clear();
