@@ -45,6 +45,9 @@ class Blue{
         reUDP* orangeSocket;
         reUDP* blueSocket;
         Code coder;
+
+		/* Mapa que contiene a los vecinos en el grafo del nodo */
+        map <unsigned short int, pair<unsigned int, unsigned short int>> mapNeighbors;
         
         //ID asignado por el nodo naranja
         unsigned short int myGraphID;
@@ -54,7 +57,6 @@ class Blue{
 
         void putInSendQueue(Blue* blue, Packet* p, int direction);
 
-        map <unsigned short int, pair<unsigned int, unsigned short int>> mapNeighbors;
 
         //Vector en donde se almacenan los puertos de los nodos recibidos como vecinos. Se utiliza para iterar sobre el mapa de vecinos.
         vector<unsigned int> ports_Neighbors;
@@ -71,7 +73,7 @@ class Blue{
         void greetNeighbor(Blue*);
 
 	public:
-		Blue(char*, unsigned short int);
+		Blue(char*, unsigned short int, unsigned short int);
         ~Blue();
         
         char* getIP();

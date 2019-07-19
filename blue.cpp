@@ -2,15 +2,14 @@
 
 #include "blue.h"
 
-Blue::Blue(char* orangeIPAddr, unsigned short int port)
+Blue::Blue(char* orangeIPAddr, unsigned short int bluePort, unsigned short int orangePort)
 {
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
 	pthread_mutex_init(&this->lockOut, nullptr);
-	this->myPort = port;
-	this->orangeSocket = new reUDP(this->myPort);
-	this->blueSocket = new reUDP(this->myPort);
+	this->orangeSocket = new reUDP(orangePort);
+	this->blueSocket = new reUDP(bluePort);
 	this->orangeSocket->run();
 	this->blueSocket->run();
 	
@@ -89,6 +88,10 @@ void *Blue::processer(Blue* blue)
 				case ID::BOGRAPH_POSITION_N:
 					blue->saveNeighbor(blue, currentEntry, true);
 					blue->greetNeighbor(blue);
+				break;
+				
+				case ID::BOGRAPH_COMPLETE:
+					std::cout << "yeah boi" << std::endl;
 				break;
 				
 				default:
@@ -173,10 +176,13 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 		
 	blue->myGraphID = ((BOGraphPosition_E*) packet)->nodeID;
 	
-	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
-	unsigned short int node = ((BOGraphPosition_E*)packet)->nodeID;
+	//assert(((BOGraphPosition_E*) packet)->nodeID > 0);
+	assert(blue->myGraphID > 0);
 	
-	cout << "Guardando asignación: soy el nodo del grafo: " << node << " vecino: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
+	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
+	//unsigned short int node = ((BOGraphPosition_E*)packet)->nodeID;
+	
+	cout << "Guardando asignación: soy el nodo del grafo: " << blue->myGraphID << " vecino: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
 	
 	//Mapa de puerto con ip de cada vecino
 	if(instantiated){
@@ -220,42 +226,49 @@ void Blue::requestGraphNode(Blue* blue)
 void Blue::greetNeighbor(Blue* blue)
 {
 	assert(!blue->mapNeighbors.empty());
+	for(auto entry : blue->mapNeighbors){
+		//if(entry.second.first != 0)
+			std::cout << "GID: " << blue->myGraphID << " NID: " << entry.first << std::endl;
+	}
 	
 }
 
 int main(int argc, char* argv[]){
-	if(argc < 4)
-		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port> <blue_host_IP>" << endl), -1;
+	if(argc < 5)
+		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port> <orange_port> <blue_host_IP>" << endl), -1;
 	if(!Socket::validateIP(argv[1]))
-		error_exit(-1, "Ip inválida!\n");
-		
-	unsigned short int bluePort = 0;
-	bluePort = (unsigned short int) atoi(argv[2]);
-	//validar puerto!!
-	Blue blueNode(argv[1], bluePort);
-	
-    pthread_t receiverBlues;
-    pthread_t receiverOranges;
-    pthread_t processer;
-    pthread_t sender;
-    
-    BlueArgs args1, args2;
-    
-    args1.node = args2.node = &blueNode;
-    
-    args1.commWith = COMM_BLUE;
-    args2.commWith = COMM_ORANGE;
-    
-	strcpy(blueNode.getIP(), argv[3]);
+		error_exit(-1, "IP inválida!\n");
 
-    pthread_create(&receiverBlues, NULL, &Blue::receiverHelper, &args1);
-    pthread_create(&receiverOranges, NULL, &Blue::receiverHelper, &args2);
-	
+	unsigned short int bluePort = 0;
+	unsigned short int orangePort = 0;
+	bluePort = (unsigned short int) atoi(argv[2]);
+	orangePort = (unsigned short int) atoi(argv[3]);
+
+	//validar puerto!!
+	Blue blueNode(argv[1], bluePort, orangePort);
+
+	pthread_t receiverBlues;
+	pthread_t receiverOranges;
+	pthread_t processer;
+	pthread_t sender;
+ 
+	BlueArgs args1, args2;
+
+	args1.node = args2.node = &blueNode;
+
+	args1.commWith = COMM_BLUE;
+	args2.commWith = COMM_ORANGE;
+
+	strcpy(blueNode.getIP(), argv[4]);
+
+	pthread_create(&receiverBlues, NULL, &Blue::receiverHelper, &args1);
+	pthread_create(&receiverOranges, NULL, &Blue::receiverHelper, &args2);
+
 	pthread_create(&processer, NULL, &Blue::processerHelper, &blueNode);
-	
+
 	pthread_create(&sender, NULL, &Blue::senderHelper, &blueNode);
 
-    /*Nunca hacen exit*/
+	/*Nunca hacen exit*/
 	pthread_join(receiverBlues, (void**) nullptr);
 	pthread_join(receiverOranges, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
