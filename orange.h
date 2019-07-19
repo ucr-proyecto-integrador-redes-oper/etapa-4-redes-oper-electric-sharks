@@ -37,6 +37,9 @@ class Orange{
     public:
 		/**Identificador de este naranja [1, N].*/
         int id;
+		
+		/**Cantidad de nodos en el grafo.*/
+		int blueAmount;
         
         /**Número de puerto por donde se recibirán comunicaciones de otros nodos naranja.*/
         unsigned short int orangeInPort;
@@ -85,6 +88,9 @@ class Orange{
         
         /**Mapa que contiene un nodo del grafo y su IP y puerto asociado, si existe.*/
         unordered_map<unsigned short int, pair<unsigned int, unsigned short int>> blueMapping;
+
+		/** Lista que contiene los nodos que yo asigne **/
+		list<unsigned short int> myBlueNodes;
 
 		/**Candado para control del búfer compartido de entrada.*/
         pthread_mutex_t lockIn;
@@ -149,6 +155,7 @@ class Orange{
         void processFullRequestToken(Orange*, PacketEntry*);
         void processJoinRequest(Orange*, PacketEntry*);
         void respondToBlueRequest(Orange*, Token*);
+		void sendGoMessage();
         void initBlueMap();
         unsigned short int findNextUnassigned(Orange*);
         

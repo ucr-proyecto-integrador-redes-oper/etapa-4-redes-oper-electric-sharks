@@ -6,6 +6,6 @@
 #include <list>
 
 void parseCSV(int i, std::string, std::list<int> &);
-void loadCSV(std::string, std::unordered_map<int, std::list<int>> *);
+int loadCSV(std::string, std::unordered_map<int, std::list<int>> *);
 
 #endif

@@ -26,7 +26,7 @@ Orange::Orange(int id, unsigned short int orangeInPort, unsigned short int orang
 	this->orangeSocket->Bind(ORANGE_PORT);
 	this->blueSocket = new reUDP(BLUE_PORT);
 	this->blueSocket->run();
-	loadCSV(csv_file, &this->blue_graph);
+	blueAmount = loadCSV(csv_file, &this->blue_graph);
 	initBlueMap();
 	this->allNodesIP.resize(0);
 }
@@ -317,13 +317,12 @@ void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 		BlueRequest* request = orange->blueRequests.front();
 		orange->blueRequests.pop();
 		//asigna un azul a un nodo del grafo
+		--blueAmount;
+		if( blueAmount == -1){
+			error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
+		} 
 		unsigned short int newAssignment = orange->findNextUnassigned(orange);
 		std::cout << "new assignment " << newAssignment << std::endl;
-		/*
-		if(newAssignment == -1){
-			error_exit(-1, "Error! No se pueden asignar más nodos del grafo!\n");
-		}
-		*/
 		token->id = ID::TOKEN_FULL_AND_REQUEST;
 		token->node = newAssignment;
 		token->assignedIp = request->blueIP;
@@ -331,12 +330,16 @@ void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 		orange->tokenOccupied = true;
 		
 		orange->blueMapping[newAssignment] = make_pair(request->blueIP, request->bluePort);
+		orange->myBlueNodes.push_front(newAssignment);
 		char buffer[IP_LEN];
 		cout << "Se cargó asignación de nodo del grafo: " << newAssignment << " al azul en: " << Socket::decode_ip(request->blueIP, buffer) << ":" << request->bluePort << endl; 
 		free(request);
 		/*Primero manda a circular el token con la asignación, y luego le responde al azul.*/
 		orange->putInSendQueue(orange, token, NODE_ORANGE);
 		orange->respondToBlueRequest(orange, token);
+		if (blueAmount == 0){
+			sendGoMessage();
+		}
 	}else{
 		//sino, solo pasa el token al vecino derecho
 		//cout << "recibí el token " << endl;
@@ -372,6 +375,10 @@ void Orange::processFullRequestToken(Orange* orange, PacketEntry* currentEntry)
 		cout << "Anotando asignación azul:\nNodo del grafo: " << token->node << "\nIP: " << Socket::decode_ip(token->assignedIp, buffer)\
 		<< "\nPuerto: " << token->assignedPort << endl;
 		orange->blueMapping[token->node] = make_pair(token->assignedIp, token->assignedPort);
+		--blueAmount;
+		if(blueAmount == 0){
+			sendGoMessage();
+		}
 	}
 	orange->putInSendQueue(orange, token, NODE_ORANGE);
 }
@@ -456,6 +463,21 @@ unsigned long Orange::findMinIP()
 char* Orange::getIP()
 {
 	return this->myIP;
+}
+
+void Orange::sendGoMessage(){
+	std::cout << "GO!" << std::endl;
+	char ip[IP_LEN];
+
+	Packet* goPacket;
+
+	for(auto entry : this->myBlueNodes){
+		goPacket = (BOGraphPosition_N*) calloc(1, sizeof(BOGraphComplete));
+		goPacket->id = ID::BOGRAPH_COMPLETE;
+		std::cout << "Node: " << entry << "\t" << "IP: " << Socket::decode_ip(blueMapping[entry].first, ip) 
+			<< "\t" << "Port: " << blueMapping[entry].second << std::endl;
+		this->putInSendQueue(this, goPacket, NODE_BLUE, blueMapping[entry].first, blueMapping[entry].second);
+	}
 }
 
 int main(int argc, char* argv[]){

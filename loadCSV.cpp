@@ -25,21 +25,21 @@ void parseCSV(int i, std::string str, std::list<int> &list){
 	}
 }
 
-void loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mmap){
+int loadCSV(std::string csv_file, std::unordered_map<int, std::list<int>> * mmap){
 	std::string str;
 	std::fstream fs(csv_file);
 	if(!fs){
 		cout << "No se pudo cargar el .csv!" << endl;
-		return; 
 	}
-	int i = 1;
+	int i = 0;
 	while(fs){
+		++i;
 		fs >> str;
 		if(str.size() > 0){
 			mmap->emplace(i, std::list<int>());
 			parseCSV(i, str, mmap->at(i));
 		}
 		str.clear();
-		++i;
 	}
+	return i-1;
 }
