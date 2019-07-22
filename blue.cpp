@@ -1,6 +1,9 @@
 #include <assert.h>
 #include <string>
 #include <cstdio>
+#include <sstream>
+#include <string>
+#include <cstring>
 
 #include "blue.h"
 
@@ -242,12 +245,29 @@ void Blue::greetNeighbor(Blue* blue)
 
 void * Blue::monitor(Blue * blue, long id){
 	struct my_msgbuf message;
+	std::stringstream ss;
+	std::string aux;
 	while(true){
+		ss.str("");
 		msgq.receive(&message, id);
+
+		message.mtype = 9999;
+		message.nodeID = blue->myGraphID;
+
 		switch(message.question){
 			case 1:
-				message.mtype = 9999;
-				message.nodeID = blue->myGraphID;
+				break;
+			case 2:
+				for(auto entry : blue->mapNeighbors){
+					ss << "N:" << (int) entry.first;
+					if(entry.second.first)
+						ss << "I";
+					else
+						ss << "N";
+					ss << std::endl;
+				}
+				aux = ss.str();
+				strcpy(message.message, aux.c_str());
 				break;
 			default:
 				std::cout << "Not quite there yet" << std::endl;

@@ -7,12 +7,14 @@ fi
 
 declare -i BLUE_PORT=$2
 declare -i ORANGE_PORT=$3
+declare -i TOTAL=$5
+TOTAL=$TOTAL+1
 
-for (( i=0; i<$5; i++ ))
+
+for (( i=1; i<$TOTAL; i++ ))
 do
-	#echo "./blue $1 $PORT $3 &"
-	./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i+1 &
-	echo ./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i+1 &
+	./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i &
+	#echo ./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i &
 	BLUE_PORT=$BLUE_PORT+1
 	ORANGE_PORT=$ORANGE_PORT+1
 done

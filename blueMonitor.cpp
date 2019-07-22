@@ -11,20 +11,21 @@ int main(){
 		std::cin >> nodeSeries;
 		std::cout << "Escoja una opcion: " << std::endl;
 		std::cout << "1. Averiguar el numero de nodo" << std::endl;
+		std::cout << "2. Averiguar vecinos del nodo" << std::endl;
 		std::cin >> option;
 
-		//std::cout << "Opcion: " << (uint8_t) option << std::endl;
+		message.question = (uint8_t) option;
+		message.mtype = nodeSeries;
+		msgq.send(&message);
+		msgq.receive(&message, 9999);
 		switch(option){
 			case 1:
-				message.question = (uint8_t) option;
-				message.mtype = nodeSeries;
-				std::cout << message.mtype << std::endl;
-				msgq.send(&message);
-				msgq.receive(&message, 9999);
 				std::cout << "El numero de nodo es: " << message.nodeID << std::endl;
 				break;
+			case 2:
+				std::cout << message.message << std::endl;
+				break;
 			default:
-				//std::cout << "Not quite there yet " << (uint8_t) option << std::endl;
 				std::cout << "Not quite there yet " << std::endl;
 				break;
 		}
