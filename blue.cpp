@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <string>
+#include <cstdio>
 
 #include "blue.h"
 
@@ -166,6 +168,11 @@ void *Blue::receiverHelper(void *args){
     return ((Blue*)arg->node)->receiver((Blue*)arg->node, ((BlueArgs*)args)->commWith);
 }
 
+void *Blue::monitorHelper(void *args){
+	MonitorArgs* arg = (MonitorArgs *) args;
+	return ((Blue *)arg->node)->monitor((Blue*)arg->node, ((MonitorArgs*)args)->seriesNumber);
+}
+
 ///Funcion que guarda un nuevo vecino en el mapa de vecinos. Ademas, se guarda el puerto en un vector para luego iterar sobre el mapa
 void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated){
 	Packet* packet;
@@ -176,7 +183,6 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 		
 	blue->myGraphID = ((BOGraphPosition_E*) packet)->nodeID;
 	
-	//assert(((BOGraphPosition_E*) packet)->nodeID > 0);
 	assert(blue->myGraphID > 0);
 	
 	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
@@ -233,9 +239,26 @@ void Blue::greetNeighbor(Blue* blue)
 	
 }
 
+
+void * Blue::monitor(Blue * blue, long id){
+	struct my_msgbuf message;
+	while(true){
+		msgq.receive(&message, id);
+		switch(message.question){
+			case 1:
+				message.mtype = 9999;
+				message.nodeID = blue->myGraphID;
+				break;
+			default:
+				std::cout << "Not quite there yet" << std::endl;
+		}
+		msgq.send(&message);
+	}
+}
+
 int main(int argc, char* argv[]){
-	if(argc < 5)
-		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port> <orange_port> <blue_host_IP>" << endl), -1;
+	if(argc < 6)
+		return (cout << "Usage: " << argv[0] << " <orange_IP_addr> <blue_port> <orange_port> <blue_host_IP> <series_number>" << endl), -1;
 	if(!Socket::validateIP(argv[1]))
 		error_exit(-1, "IP inválida!\n");
 
@@ -251,8 +274,12 @@ int main(int argc, char* argv[]){
 	pthread_t receiverOranges;
 	pthread_t processer;
 	pthread_t sender;
+	pthread_t monitor;
  
 	BlueArgs args1, args2;
+	MonitorArgs mArgs;
+	mArgs.node = &blueNode;
+	mArgs.seriesNumber = std::stol(argv[5]);
 
 	args1.node = args2.node = &blueNode;
 
@@ -261,16 +288,20 @@ int main(int argc, char* argv[]){
 
 	strcpy(blueNode.getIP(), argv[4]);
 
+
 	pthread_create(&receiverBlues, NULL, &Blue::receiverHelper, &args1);
 	pthread_create(&receiverOranges, NULL, &Blue::receiverHelper, &args2);
 
 	pthread_create(&processer, NULL, &Blue::processerHelper, &blueNode);
 
 	pthread_create(&sender, NULL, &Blue::senderHelper, &blueNode);
+	
+	pthread_create(&monitor, NULL, &Blue::monitorHelper, &mArgs);
 
 	/*Nunca hacen exit*/
 	pthread_join(receiverBlues, (void**) nullptr);
 	pthread_join(receiverOranges, (void**) nullptr);
 	pthread_join(processer, (void**) nullptr);
 	pthread_join(sender, (void**) nullptr);
+	pthread_join(monitor, (void**) nullptr);
 }

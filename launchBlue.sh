@@ -11,7 +11,8 @@ declare -i ORANGE_PORT=$3
 for (( i=0; i<$5; i++ ))
 do
 	#echo "./blue $1 $PORT $3 &"
-	./blue $1 $BLUE_PORT $ORANGE_PORT $4 &
+	./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i+1 &
+	echo ./blue $1 $BLUE_PORT $ORANGE_PORT $4 $i+1 &
 	BLUE_PORT=$BLUE_PORT+1
 	ORANGE_PORT=$ORANGE_PORT+1
 done

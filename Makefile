@@ -4,19 +4,28 @@ FLAGS = -g -Wall -Wextra
 
 .DEFAULT_GOAL := all
 
-all: orange blue greenNode
+all: orange blue greenNode blueMonitor
  
 orange: orange.o socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o
 	$(CXX) $(FLAGS) -o orange socket.o encoder.o error_handler.o loadCSV.o secudp.o semaphore.o orange.o -pthread
 	
-blue: socket.o encoder.o error_handler.o blue.o secudp.o semaphore.o
-	$(CXX) $(FLAGS) -o blue blue.o socket.o error_handler.o encoder.o secudp.o semaphore.o -pthread 
+blue: socket.o encoder.o error_handler.o blue.o secudp.o semaphore.o message.o
+	$(CXX) $(FLAGS) -o blue blue.o socket.o error_handler.o encoder.o secudp.o semaphore.o message.o -pthread 
 
 greenNode: greenNode.o secudp.o socket.o semaphore.o error_handler.o
 	$(CXX) $(FLAGS) -pthread greenNode.o secudp.o socket.o semaphore.o error_handler.o -o greenNode
 
+blueMonitor: blueMonitor.o message.o error_handler.o
+	$(CXX) $(FLAGS) -o blueMonitor blueMonitor.o message.o error_handler.o
+
 blue.o: blue.cpp
 	$(CXX) $(FLAGS) -c blue.cpp
+
+blueMonitor.o: blueMonitor.cpp
+	$(CXX) $(FLAGS) -c blueMonitor.cpp
+
+message.o: message.cpp
+	$(CXX) $(FLAGS) -c message.cpp
 
 socket.o: socket.cpp
 	$(CXX) $(FLAGS) -c socket.cpp

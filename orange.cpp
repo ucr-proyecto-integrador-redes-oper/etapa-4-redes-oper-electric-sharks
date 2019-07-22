@@ -196,7 +196,9 @@ void *Orange::sender(Orange* orange){
 				rawPacket = coder.encode(toSend, NODE_BLUE);
 				assert(rawPacket);
 				char buffer[IP_LEN];
+				#ifdef DORANGE
 				cout << "Respondiendo solicitud de azul al puerto: " << currentEntry->sendToPort << endl;
+				#endif
 				orange->blueSocket->Sendto(rawPacket, Socket::decode_ip(currentEntry->sendToIP, buffer), currentEntry->sendToPort, packetLen);
 			}
 			free(toSend);
@@ -310,7 +312,7 @@ void Orange::processInitialToken(PacketEntry* currentEntry)
 
 void Orange::processEmptyToken(Orange* orange, PacketEntry* currentEntry)
 {
-	cout << "Empty token" << endl;
+	//cout << "Empty token" << endl;
 	Token* token = (Token*)currentEntry->packet;
 	//si el token está libre, y tiene asignaciones pendientes
 	if(!orange->blueRequests.empty()){
@@ -401,31 +403,30 @@ void Orange::respondToBlueRequest(Orange* orange, Token* token)
 	Packet* answer;
 	
 	/*Un nodo del grafo no puede no tener vecinos.*/
-	cout << "size: " << orange->blue_graph.at(token->node).size() << endl;
 	assert(orange->blue_graph[token->node].size() > 0);
 	
 	/*Para cada vecino que tenga, toma acciones distintas dependiendo de si el vecino ya se instanció o no.*/
-	for(auto neighbor : orange->blue_graph[token->node]){
-		
+	uint16_t node = token->node;
+	for(auto neighbor : orange->blue_graph[node]){
 		if(orange->blueMapping[neighbor].first != 0){	//si el vecino está instanciado
-			cout << "asignando vecino instanciado " << neighbor << " al nodo " << token->node << endl;
+			cout << "asignando vecino instanciado " << neighbor << " al nodo " << node << endl;
 			//toma la dirección ip y puerto del vecino, los mete en un paquete de respuesta y lo manda
 			answer = (BOGraphPosition_N*) calloc(1, sizeof(BOGraphPosition_N));
 			answer->id = ID::BOGRAPH_POSITION_N;
-			((BOGraphPosition_N*)answer)->nodeID = token->node;
+			((BOGraphPosition_N*)answer)->nodeID = node;
 			((BOGraphPosition_N*)answer)->neighborID = neighbor;
 			assert(orange->blueMapping[neighbor].first != 0);
 			assert(orange->blueMapping[neighbor].second != 0);
 			char buffer[IP_LEN];
-			cout << "id del paquete: " << answer->id << endl;
+			cout << "id del paquete: " << (uint8_t) answer->id << endl;
 			cout << "ip del vecino " << neighbor << " : " <<  Socket::decode_ip(orange->blueMapping[neighbor].first, buffer) << " puerto: " << orange->blueMapping[neighbor].second << endl;
 			((BOGraphPosition_N*)answer)->neighborIP = orange->blueMapping[neighbor].first;
 			((BOGraphPosition_N*)answer)->neighborPort = orange->blueMapping[neighbor].second;	
 		}else{ //si el vecino no está instanciado, solo toma la id del nodo y de su vecino, y las manda
-			cout << "asignando vecino NO instanciado " << neighbor << " al nodo " << token->node << endl;
+			cout << "asignando vecino NO instanciado " << neighbor << " al nodo " << node << endl;
 			answer = (BOGraphPosition_E*) calloc(1, sizeof(BOGraphPosition_E));
 			answer->id = ID::BOGRAPH_POSITION_E;
-			((BOGraphPosition_E*)answer)->nodeID = token->node;
+			((BOGraphPosition_E*)answer)->nodeID = node;
 			((BOGraphPosition_E*)answer)->neighborID = neighbor;
 		}
 		orange->putInSendQueue(orange, answer, NODE_BLUE, token->assignedIp, token->assignedPort);
@@ -443,8 +444,10 @@ void Orange::initBlueMap()
 unsigned short int Orange::findNextUnassigned(Orange* orange)
 {
 	for(auto node : orange->blueMapping)
-		if(node.second.first == 0 && node.second.second == 0)
+		if(node.second.first == 0 && node.second.second == 0){
+			cout << "Retornando " << node.first << std::endl;
 			return node.first;
+		}
 	
 	return -1;
 }

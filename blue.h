@@ -12,6 +12,7 @@
 #include <queue>
 #include <map>
 #include <semaphore.h>
+#include "message.h"
 
 #define BUF_SIZE 1024
 #define IP_LEN 16
@@ -55,6 +56,9 @@ class Blue{
         //Puerto por el cual se recibe la comunicacion con otros nodos
         unsigned short int myPort;
 
+		//Cola de mensajes para monitorear el estado del nodo
+		Message msgq;
+
         void putInSendQueue(Blue* blue, Packet* p, int direction);
 
 
@@ -68,6 +72,7 @@ class Blue{
         void * receiver(Blue*, int);
         void * processer(Blue*);
         void * sender(Blue*);
+		void * monitor(Blue*, long);
         
         void requestGraphNode(Blue*);
         void greetNeighbor(Blue*);
@@ -81,6 +86,7 @@ class Blue{
         static void * receiverHelper(void *context);
         static void * processerHelper(void *context);
         static void * senderHelper(void *context);
+		static void * monitorHelper(void * context);
         
 };
 
@@ -89,5 +95,11 @@ typedef struct BlueArgs
 	Blue* node;
 	int commWith;
 }BlueArgs;
+
+typedef struct MonitorArgs
+{
+	Blue* node;
+	long seriesNumber;
+} MonitorArgs;
 
 #endif
