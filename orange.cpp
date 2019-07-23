@@ -196,9 +196,7 @@ void *Orange::sender(Orange* orange){
 				rawPacket = coder.encode(toSend, NODE_BLUE);
 				assert(rawPacket);
 				char buffer[IP_LEN];
-				#ifdef DORANGE
 				cout << "Respondiendo solicitud de azul al puerto: " << currentEntry->sendToPort << endl;
-				#endif
 				orange->blueSocket->Sendto(rawPacket, Socket::decode_ip(currentEntry->sendToIP, buffer), currentEntry->sendToPort, packetLen);
 			}
 			free(toSend);
@@ -445,7 +443,6 @@ unsigned short int Orange::findNextUnassigned(Orange* orange)
 {
 	for(auto node : orange->blueMapping)
 		if(node.second.first == 0 && node.second.second == 0){
-			cout << "Retornando " << node.first << std::endl;
 			return node.first;
 		}
 	

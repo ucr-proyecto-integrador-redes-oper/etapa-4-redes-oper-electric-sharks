@@ -6,6 +6,7 @@
 #include "encoder.h"
 #include "error_handler.h"
 #include "BlueOrange.h"
+#include "bluePacket.h"
 #include "secudp.h"
 
 #include <pthread.h>
@@ -59,13 +60,16 @@ class Blue{
 		//Cola de mensajes para monitorear el estado del nodo
 		Message msgq;
 
-        void putInSendQueue(Blue* blue, Packet* p, int direction);
+		long seriesNumber;
+
+        void putInSendQueue(Blue* blue, Packet* p, int direction, uint16_t = 0);
 
 
         //Vector en donde se almacenan los puertos de los nodos recibidos como vecinos. Se utiliza para iterar sobre el mapa de vecinos.
         vector<unsigned int> ports_Neighbors;
         
         void saveNeighbor(Blue*, PacketEntry*, bool);
+		void attendNeighbor(Blue*, PacketEntry*);
         void sendChunk(char []);
 
         /**Threads */
@@ -75,10 +79,10 @@ class Blue{
 		void * monitor(Blue*, long);
         
         void requestGraphNode(Blue*);
-        void greetNeighbor(Blue*);
+        void greetNeighbor(Blue*, uint16_t);
 
 	public:
-		Blue(char*, unsigned short int, unsigned short int);
+		Blue(char*, unsigned short int, unsigned short int, long);
         ~Blue();
         
         char* getIP();

@@ -39,7 +39,7 @@ void reUDP::Sendto(const char * message, const char * destination, uint16_t port
 	frame->sn = sn;
 	memcpy((void *) frame->payload, (const void *) message, len);
 	#ifdef SECDEBUG
-		printPacket(frame, len);
+		//printPacket(frame, len);
 	#endif
 
 	struct direction * direc = new struct direction();

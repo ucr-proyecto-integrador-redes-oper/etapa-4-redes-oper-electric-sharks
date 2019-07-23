@@ -5,10 +5,13 @@
 #include <string>
 #include <cstring>
 
+#include <arpa/inet.h>
+
 #include "blue.h"
 
-Blue::Blue(char* orangeIPAddr, unsigned short int bluePort, unsigned short int orangePort)
+Blue::Blue(char* orangeIPAddr, unsigned short int bluePort, unsigned short int orangePort, long seriesNumber)
 {
+	this->seriesNumber = seriesNumber;
 	sem_init(&this->InBufferSem, 0, 0);
 	sem_init(&this->OutBufferSem, 0, 0);
 	pthread_mutex_init(&this->lockIn, nullptr);
@@ -32,6 +35,7 @@ Blue::~Blue()
 ///Funcion ejecutada en paralelo por el thread que va a enviar a otos nodos naranjas y azules información en la cola de salida
 void *Blue::sender(Blue* blue){
     char* rawPacket = nullptr;
+	char ip[IP_LEN];
     
     while(true){
         if(!blue->privateOutBuffer.empty()){
@@ -46,8 +50,15 @@ void *Blue::sender(Blue* blue){
 			packetLen = Code::findPacketLen(toSend);
 	
 			/*Solo se comunica con su naranja por ahora, hace falta comunicar con otros azules.*/
-			if(currentEntry->sendTo == NODE_ORANGE)
+			if(currentEntry->sendTo == NODE_ORANGE){
 				blue->orangeSocket->Sendto(rawPacket, blue->myOrangeIP, BLUE_PORT, packetLen);
+			} else if(currentEntry->sendTo == NODE_BLUE){
+				Socket::decode_ip(currentEntry->sendToIP, ip);
+				std::cout << "IP: " << ip << " port " << currentEntry->sendToPort << std::endl;
+				blue->blueSocket->Sendto(rawPacket, ip, currentEntry->sendToPort, packetLen);
+			} else {
+				assert(true);
+			}
 			
 			free(toSend);
             free(currentEntry);
@@ -69,6 +80,7 @@ void *Blue::processer(Blue* blue)
 {
 	blue->requestGraphNode(blue);
 	PacketEntry* currentEntry;
+	char ip[IP_LEN];
 	
     while(true){
         /*Lee la cola compartida, saca el paquete del frente y lo procesa */
@@ -92,11 +104,19 @@ void *Blue::processer(Blue* blue)
 				
 				case ID::BOGRAPH_POSITION_N:
 					blue->saveNeighbor(blue, currentEntry, true);
-					blue->greetNeighbor(blue);
 				break;
 				
 				case ID::BOGRAPH_COMPLETE:
-					std::cout << "yeah boi" << std::endl;
+					std::cout << "Completo" << std::endl;
+				break;
+				
+				case ID::BHELLO:
+					Socket::decode_ip(currentEntry->senderIP, ip);
+					/*
+					std::cout << blue->seriesNumber << " receiving greeting ";
+					std::cout << "from: " << ip << " " << currentEntry->senderPort << std::endl; 
+					*/
+					blue->attendNeighbor(blue, currentEntry);
 				break;
 				
 				default:
@@ -106,10 +126,21 @@ void *Blue::processer(Blue* blue)
     }
 }
 
+void Blue::attendNeighbor(Blue* blue, PacketEntry* currentEntry){
+	std::cout << "Come on in!" << std::endl;
+	BHello * hiPacket = (BHello *) currentEntry->packet;
+	uint32_t ip = currentEntry->senderIP;
+	uint16_t port = currentEntry->senderPort;
+	uint16_t neighbor = hiPacket->nodeID;
+
+	assert(hiPacket->nodeID > 0);
+	blue->mapNeighbors[neighbor].first = ip;
+	blue->mapNeighbors[neighbor].second = port;
+}
+
 ///Función ejecutada en paralelo para escuchar a los otros nodos del sistema
 void *Blue::receiver(Blue* blue, int type){
-    char* buffer = new char[BUF_SIZE];
-    memset(buffer, 0, BUF_SIZE);
+    char buffer[BUF_SIZE];
     Packet* currentPacket;
     PacketEntry* currentEntry = nullptr;
     struct sockaddr_in senderAddr;
@@ -117,6 +148,7 @@ void *Blue::receiver(Blue* blue, int type){
     
     
     while(true){
+    	memset(buffer, 0, BUF_SIZE);
         currentEntry = (PacketEntry*) calloc(1, sizeof(PacketEntry));
         /*Lee del socket*/
 
@@ -124,6 +156,7 @@ void *Blue::receiver(Blue* blue, int type){
 			blue->blueSocket->Recvfrom(buffer, &senderAddr);
         else
 			blue->orangeSocket->Recvfrom(buffer, &senderAddr);
+		//std::cout << blue->seriesNumber << " received mail" << std::endl;
         /*Transforma la tira de bytes en un paquete*/
         currentPacket = coder.decode(buffer, PACKET_BLUE);
         assert(currentPacket);
@@ -189,9 +222,7 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 	assert(blue->myGraphID > 0);
 	
 	unsigned short int neighborID = ((BOGraphPosition_E*)packet)->neighborID;
-	//unsigned short int node = ((BOGraphPosition_E*)packet)->nodeID;
 	
-	cout << "Guardando asignación: soy el nodo del grafo: " << blue->myGraphID << " vecino: " << neighborID << " vecino instanciado: " << std::boolalpha << instantiated << endl;
 	
 	//Mapa de puerto con ip de cada vecino
 	if(instantiated){
@@ -200,6 +231,8 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 		mapNeighbors[neighborID] = make_pair(neighborIP, neighborPort);
 		//vector que guarda solo ip de vecinos para iterar sobre estos para el round robin
 		ports_Neighbors.push_back(neighborIP);
+
+		blue->greetNeighbor(blue, neighborID);
 	}else{
 		mapNeighbors[neighborID] = make_pair(0, 0);
 	}
@@ -208,11 +241,15 @@ void Blue::saveNeighbor(Blue* blue, PacketEntry* currentEntry, bool instantiated
 }
 
 //Funcion que toma un paquete y le agrega informacion en una nueva estructura para ser enviado por el thread sender
-void Blue::putInSendQueue(Blue* blue, Packet* p, int direction)
+void Blue::putInSendQueue(Blue* blue, Packet* p, int direction, uint16_t nodeID)
 {	
 	PacketEntry* newPacket = (PacketEntry*) calloc(1, sizeof(PacketEntry));
 	newPacket->packet = p;
 	newPacket->sendTo = direction;
+	if(direction == NODE_BLUE){
+		newPacket->sendToIP = blue->mapNeighbors[nodeID].first;
+		newPacket->sendToPort = blue->mapNeighbors[nodeID].second;
+	}
 	pthread_mutex_lock(&blue->lockOut);
 	blue->privateOutBuffer.push(newPacket);
 	pthread_mutex_unlock(&blue->lockOut);
@@ -232,14 +269,15 @@ void Blue::requestGraphNode(Blue* blue)
 	putInSendQueue(blue, joinRequest, NODE_ORANGE);
 }
 
-void Blue::greetNeighbor(Blue* blue)
+void Blue::greetNeighbor(Blue* blue, uint16_t entry)
 {
+	BHello* helloPacket;
 	assert(!blue->mapNeighbors.empty());
-	for(auto entry : blue->mapNeighbors){
-		//if(entry.second.first != 0)
-			std::cout << "GID: " << blue->myGraphID << " NID: " << entry.first << std::endl;
-	}
-	
+	helloPacket = (BHello*) calloc(1, sizeof(BHello));
+	helloPacket->id = ID::BHELLO;
+	helloPacket->nodeID = blue->myGraphID;
+	assert(helloPacket->nodeID > 0);
+	putInSendQueue(blue, helloPacket, NODE_BLUE, entry);
 }
 
 
@@ -259,7 +297,7 @@ void * Blue::monitor(Blue * blue, long id){
 				break;
 			case 2:
 				for(auto entry : blue->mapNeighbors){
-					ss << "N:" << (int) entry.first;
+					ss << (int) entry.first;
 					if(entry.second.first)
 						ss << "I";
 					else
@@ -284,11 +322,13 @@ int main(int argc, char* argv[]){
 
 	unsigned short int bluePort = 0;
 	unsigned short int orangePort = 0;
+	long seriesNumber = 0;
+	seriesNumber = std::stol(argv[5]);
 	bluePort = (unsigned short int) atoi(argv[2]);
 	orangePort = (unsigned short int) atoi(argv[3]);
 
 	//validar puerto!!
-	Blue blueNode(argv[1], bluePort, orangePort);
+	Blue blueNode(argv[1], bluePort, orangePort, seriesNumber);
 
 	pthread_t receiverBlues;
 	pthread_t receiverOranges;
@@ -299,7 +339,7 @@ int main(int argc, char* argv[]){
 	BlueArgs args1, args2;
 	MonitorArgs mArgs;
 	mArgs.node = &blueNode;
-	mArgs.seriesNumber = std::stol(argv[5]);
+	mArgs.seriesNumber = seriesNumber;
 
 	args1.node = args2.node = &blueNode;
 
